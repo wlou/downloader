@@ -1,5 +1,6 @@
 package org.wlou.jbdownloader;
 
+import org.apache.log4j.Logger;
 import org.wlou.jbdownloader.http.Http;
 import org.wlou.jbdownloader.http.HttpHead;
 
@@ -18,11 +19,7 @@ import java.util.function.BiConsumer;
 
 public class Downloader implements Runnable {
 
-    public static final String INIT_ERROR_MESSAGE = "Error was occurred during initialization";
-    public static final String PROC_ERROR_MESSAGE = "Error was occurred during downloading";
-    public static final String SUCCESSFULL_INITIALIZED_MESSAGE = "Download is processing";
-    public static final String SUCCESSFULL_COMPLETED_MESSAGE = "Download is successfully completed";
-    public static final String PAUSED_MESSAGE = "Download is paused";
+    private static Logger LOG = Logger.getLogger(Downloader.class.getName());
 
     public Downloader(ConcurrentLinkedQueue<Download> tasks) {
         stop = false;
@@ -70,11 +67,10 @@ public class Downloader implements Runnable {
         SocketAddress remote = new InetSocketAddress(InetAddress.getByName(what.getHost()), Http.DEFAULT_PORT);
 
         // Prepare context.
-        String requestStr = HttpHead.makeRequest(what);
         AsyncTools.NetworkOperationContext context = new AsyncTools.NetworkOperationContext(
             AsynchronousSocketChannel.open(),
-            ByteBuffer.wrap(requestStr.getBytes(Charset.forName(Http.DEFAULT_CONTENT_CHARSET))),
-            ByteBuffer.allocateDirect(1024)
+            HttpHead.makeRequest(what),
+            ByteBuffer.allocateDirect(1024) // FIXME: for now only sor headers are supported
         );
 
         // Prepare asynchronous initialization workflow.
@@ -83,10 +79,9 @@ public class Downloader implements Runnable {
 
         BiConsumer<Throwable, AsyncTools.NetworkOperationContext> onError = (exc, ctx) -> {
             try {
-                //TODO: log error
+                LOG.error(exc);
+                DownloadTools.setFailed(download);
                 ctx.close();
-                download.CurrentStatus.set(Download.Status.ERROR);
-                download.Information.set(INIT_ERROR_MESSAGE);
             } catch (IOException ignored) {} // Ignore ctx.close exception
         };
 
@@ -94,11 +89,12 @@ public class Downloader implements Runnable {
             (red, ctx) -> {
                 try{
                     assert red == -1;
+                    ctx.ResponseBytes.flip();
+                    String responseString = new String(ctx.ResponseBytes.array(), Http.DEFAULT_CONTENT_CHARSET);
+                    LOG.debug(String.format("Head response is received: [%s]", responseString));
+                    DownloadTools.prepareDownload(download, HttpHead.parseResponse(responseString));
+                    synchronized (tasks) { tasks.notify(); }
                     ctx.close();
-                    //TODO: make initialization
-                    download.Information.set(SUCCESSFULL_INITIALIZED_MESSAGE);
-                    download.CurrentStatus.set(Download.Status.ACTIVE);
-                    synchronized (tasks) { tasks.notifyAll(); }
                 } catch (IOException ignored) {} // Ignore ctx.close exception
                   catch (Exception e) {
                       onError.accept(e, ctx);
@@ -109,22 +105,30 @@ public class Downloader implements Runnable {
 
         CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onSent = AsyncTools.handlerFrom(
             (written, ctx) -> {
-                assert ctx.RequestBytes.limit() == written;
+                assert ctx.RequestString.getBytes(Charset.forName(Http.DEFAULT_CONTENT_CHARSET)).length == written;
+                LOG.debug(String.format("Request of %d bytes is sent", written));
+                LOG.debug("Start reading response");
                 ctx.Channel.read(ctx.ResponseBytes, ctx, onReceived);
             },
             onError
         );
 
         CompletionHandler<Void, AsyncTools.NetworkOperationContext> onConnect = AsyncTools.handlerFrom(
-            (stub1, ctx) -> ctx.Channel.write(ctx.RequestBytes, ctx, onSent),
+            (stub1, ctx) -> {
+                LOG.debug(String.format("Domain: [%s] connected", what.getHost()));
+                LOG.debug(String.format("Sending request: [%s]", ctx.RequestString));
+                byte[] requestBytes = ctx.RequestString.getBytes(Charset.forName(Http.DEFAULT_CONTENT_CHARSET));
+                ctx.Channel.write(ByteBuffer.wrap(requestBytes), ctx, onSent);
+            },
             onError
         );
 
         // Start the workflow.
+        LOG.debug(String.format("Connecting to: [%s]", what.getHost()));
         context.Channel.connect(remote, context, onConnect);
     }
 
-    private boolean process(Download download) {
+    public boolean process(Download download) {
         return false;
     }
 

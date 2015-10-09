@@ -1,7 +1,6 @@
 package org.wlou.jbdownloader.http;
 
 import java.net.URL;
-import java.nio.Buffer;
 import java.util.Map;
 
 public final class HttpHead {
@@ -32,7 +31,7 @@ public final class HttpHead {
         return request.toString();
     }
 
-    public static Map<String, String> parseResponse(Buffer response) {
+    public static Map<String, String> parseResponse(String response) {
         return null;
     }
 

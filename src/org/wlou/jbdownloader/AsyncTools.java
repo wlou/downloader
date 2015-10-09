@@ -11,14 +11,14 @@ public final class AsyncTools {
 
     public static class NetworkOperationContext implements AutoCloseable
     {
-        public NetworkOperationContext(AsynchronousSocketChannel channel, ByteBuffer requestBytes, ByteBuffer responseBytes) {
+        public NetworkOperationContext(AsynchronousSocketChannel channel, String requestString, ByteBuffer responseBytes) {
             Channel = channel;
-            RequestBytes = requestBytes;
+            RequestString = requestString;
             ResponseBytes = responseBytes;
         }
 
         public final AsynchronousSocketChannel Channel;
-        public final ByteBuffer RequestBytes;
+        public final String RequestString;
         public final ByteBuffer ResponseBytes;
 
         @Override
