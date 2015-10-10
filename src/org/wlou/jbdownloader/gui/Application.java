@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class Application {
+    public static final String F = "http://apache-mirror.rbc.ru/pub/apache//httpcomponent/httpclient/binary/httpcomponents-client-4.5.1-bin.zip";
     public static final String U = "http://apache-mirror.rbc.ru/pub/apache//httpcomponents/httpclient/binary/httpcomponents-client-4.5.1-bin.zip";
     public static void main(String[] args) {
         try {

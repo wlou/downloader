@@ -12,11 +12,13 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.nio.charset.Charset;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiConsumer;
 
 
+/**
+ *
+ */
 public class Downloader implements Runnable {
 
     private static Logger LOG = Logger.getLogger(Downloader.class.getName());
@@ -26,6 +28,9 @@ public class Downloader implements Runnable {
         this.tasks = tasks;
     }
 
+    /**
+     *
+     */
     @Override
     public void run() {
         try {
@@ -49,11 +54,17 @@ public class Downloader implements Runnable {
                 if (!hasWork)
                     tasks.wait();
             }
-        } catch (Exception e) {
-            //TODO: log error
+        }
+        catch (InterruptedException ignored) {}
+        catch (Exception e) {
+            LOG.error(e);
         }
     }
 
+    /**
+     * @param download
+     * @throws IOException
+     */
     public void initialize(Download download) throws IOException {
         boolean acquired = false;
         while (Download.Status.NEW == download.CurrentStatus.get())
@@ -70,7 +81,7 @@ public class Downloader implements Runnable {
         AsyncTools.NetworkOperationContext context = new AsyncTools.NetworkOperationContext(
             AsynchronousSocketChannel.open(),
             HttpHead.makeRequest(what),
-            ByteBuffer.allocateDirect(1024) // FIXME: for now only sor headers are supported
+            ByteBuffer.allocate(1024) // FIXME: for now only short headers are supported
         );
 
         // Prepare asynchronous initialization workflow.
@@ -80,7 +91,7 @@ public class Downloader implements Runnable {
         BiConsumer<Throwable, AsyncTools.NetworkOperationContext> onError = (exc, ctx) -> {
             try {
                 LOG.error(exc);
-                DownloadTools.setFailed(download);
+                DownloadTools.setFailed(download, DownloadTools.INIT_ERROR_MESSAGE);
                 ctx.close();
             } catch (IOException ignored) {} // Ignore ctx.close exception
         };
@@ -88,9 +99,7 @@ public class Downloader implements Runnable {
         CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onReceived = AsyncTools.handlerFrom(
             (red, ctx) -> {
                 try{
-                    assert red == -1;
-                    ctx.ResponseBytes.flip();
-                    String responseString = new String(ctx.ResponseBytes.array(), Http.DEFAULT_CONTENT_CHARSET);
+                    String responseString = ctx.responseString(red, Http.DEFAULT_CONTENT_CHARSET);
                     LOG.debug(String.format("Head response is received: [%s]", responseString));
                     DownloadTools.prepareDownload(download, HttpHead.parseResponse(responseString));
                     synchronized (tasks) { tasks.notify(); }
@@ -105,7 +114,7 @@ public class Downloader implements Runnable {
 
         CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onSent = AsyncTools.handlerFrom(
             (written, ctx) -> {
-                assert ctx.RequestString.getBytes(Charset.forName(Http.DEFAULT_CONTENT_CHARSET)).length == written;
+                assert ctx.requestBytes(Http.DEFAULT_CONTENT_CHARSET).limit() == written;
                 LOG.debug(String.format("Request of %d bytes is sent", written));
                 LOG.debug("Start reading response");
                 ctx.Channel.read(ctx.ResponseBytes, ctx, onReceived);
@@ -117,8 +126,7 @@ public class Downloader implements Runnable {
             (stub1, ctx) -> {
                 LOG.debug(String.format("Domain: [%s] connected", what.getHost()));
                 LOG.debug(String.format("Sending request: [%s]", ctx.RequestString));
-                byte[] requestBytes = ctx.RequestString.getBytes(Charset.forName(Http.DEFAULT_CONTENT_CHARSET));
-                ctx.Channel.write(ByteBuffer.wrap(requestBytes), ctx, onSent);
+                ctx.Channel.write(ctx.requestBytes(Http.DEFAULT_CONTENT_CHARSET), ctx, onSent);
             },
             onError
         );
@@ -128,6 +136,10 @@ public class Downloader implements Runnable {
         context.Channel.connect(remote, context, onConnect);
     }
 
+    /**
+     * @param download
+     * @return
+     */
     public boolean process(Download download) {
         return false;
     }
