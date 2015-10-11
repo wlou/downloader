@@ -86,7 +86,7 @@ public class Downloader implements Runnable {
 
         // Prepare context.
         AsyncTools.NetworkOperationContext context = new AsyncTools.NetworkOperationContext(
-            AsynchronousSocketChannel.open(),
+            AsynchronousSocketChannel.open(channels),
             HttpHead.makeRequest(what),
             ByteBuffer.allocate(1024) // FIXME: for now only short headers are supported
         );
@@ -185,7 +185,7 @@ public class Downloader implements Runnable {
 
         // Prepare context.
         AsyncTools.NetworkOperationContext context = new AsyncTools.NetworkOperationContext(
-            AsynchronousSocketChannel.open(),
+            AsynchronousSocketChannel.open(channels),
             HttpGet.makeRequest(what),
             download.nextOutputBuffer()
         );
