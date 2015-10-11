@@ -40,14 +40,14 @@ public final class AsyncTools {
         public final ByteBuffer ResponseBytes;
 
         /**
-         * @param red
+         * @param read
          * @param charset
          * @return
          */
-        public String responseString(int red, String charset) {
-            assert red > 0;
+        public String responseString(int read, String charset) {
+            assert read > 0;
             ResponseBytes.flip();
-            byte[] buffer = new byte[red];
+            byte[] buffer = new byte[read];
             ResponseBytes.get(buffer);
             return new String(buffer, Charset.forName(charset));
         }

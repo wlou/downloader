@@ -106,9 +106,9 @@ public class Downloader implements Runnable {
         final CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onReceived =
             new CompletionHandler<Integer, AsyncTools.NetworkOperationContext>() {
                 @Override
-                public void completed(Integer red, AsyncTools.NetworkOperationContext ctx) {
+                public void completed(Integer read, AsyncTools.NetworkOperationContext ctx) {
                     try {
-                        String responseString = ctx.responseString(red, Http.DEFAULT_CONTENT_CHARSET);
+                        String responseString = ctx.responseString(read, Http.DEFAULT_CONTENT_CHARSET);
                         LOG.debug(String.format("Head response has been received: [%s]", responseString));
                         prepareDownload(download, responseString);
                         synchronized (tasks) { tasks.notify(); }
@@ -206,16 +206,16 @@ public class Downloader implements Runnable {
         final CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onReceived =
             new CompletionHandler<Integer, AsyncTools.NetworkOperationContext>() {
                 @Override
-                public void completed(Integer red, AsyncTools.NetworkOperationContext ctx) {
+                public void completed(Integer read, AsyncTools.NetworkOperationContext ctx) {
                     try{
-                        LOG.debug(String.format("Response portion has been received (%d bytes)", red));
+                        LOG.debug(String.format("Response portion has been received (%d bytes)", read));
                         if (download.getCurentStatus() != Download.Status.DOWNLOADING) {
                             LOG.debug(String.format("Download status has been changed: %s", download.getCurentStatus()));
                             return;
                         }
                         if (!ctx.ResponseBytes.hasRemaining())
                             ctx = new AsyncTools.NetworkOperationContext(ctx.Channel, null, download.nextOutputBuffer());
-                        if (red == -1 || ctx.ResponseBytes == null) {
+                        if (read == -1 || ctx.ResponseBytes == null) {
                             download.complete(Download.Status.COMPLETED, SUCCESSFUL_COMPLETED_MESSAGE);
                             ctx.close();
                             return;
