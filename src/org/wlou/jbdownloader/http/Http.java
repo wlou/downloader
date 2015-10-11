@@ -4,7 +4,7 @@ public final class Http {
     public static final int CR = 13;
     public static final int LF = 10;
     public static final int SPACE = 32;
-    public static final int COLON = 80;
+    public static final int COLON = 58;
 
     public static final int DEFAULT_PORT = 80;
 
