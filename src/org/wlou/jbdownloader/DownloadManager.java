@@ -13,8 +13,8 @@ public class DownloadManager implements AutoCloseable {
     public DownloadManager() throws IOException {
         downloads = new ConcurrentLinkedQueue<>();
         executors = new ThreadPoolExecutor(parallelCapacity, parallelCapacity, 0, TimeUnit.NANOSECONDS, new LinkedBlockingQueue<>());
-        worker = new Thread(new Downloader(downloads, executors));
-        worker.start();
+        dispatcher = new Thread(new Downloader(downloads, executors));
+        dispatcher.start();
     }
 
     public void addDownload(Download download) {
@@ -22,14 +22,16 @@ public class DownloadManager implements AutoCloseable {
         synchronized (downloads) { downloads.notify(); }
     }
 
-    public void addDownload(URL url, Path base) {
-        addDownload(new Download(url, base));
+    public Download addDownload(URL url, Path base) {
+        Download download = new Download(url, base);
+        addDownload(download);
+        return download;
     }
 
     public void removeDownload(Download download) {
-        while (download.getCurentStatus() != Download.Status.STOPED)
-            download.changeStatus(download.getCurentStatus(), Download.Status.STOPED, "");
+        download.setCurrentStatus(Download.Status.GHOST, null);
         downloads.remove(download);
+        synchronized (downloads) { downloads.notify(); }
     }
 
     public void setParallelCapacity(int capacity) {
@@ -40,13 +42,13 @@ public class DownloadManager implements AutoCloseable {
     @Override
     public void close() throws Exception {
         executors.shutdown();
-        worker.interrupt();
+        dispatcher.interrupt();
         downloads.clear();
     }
 
-    private final Thread worker;
+    private final Thread dispatcher;
     private final ThreadPoolExecutor executors;
     private final ConcurrentLinkedQueue<Download> downloads;
 
-    int parallelCapacity = 1;
+    int parallelCapacity = 2;
 }

@@ -28,10 +28,12 @@ public class Application {
         try (DownloadManager mgr = new DownloadManager()){
             Download test = new Download(new URL(U),Paths.get(System.getProperty("user.dir")));
             mgr.addDownload(test);
-            synchronized (test) {
-                test.wait();
+            while (test.getCurrentStatus() != Download.Status.DOWNLOADED) {
+                synchronized (test) {
+                    test.wait();
+                }
             }
-            System.out.println(test.getCurentStatus());
+            System.out.println(test.getCurrentStatus());
         }
         catch (Exception e) {
             e.printStackTrace();

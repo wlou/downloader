@@ -48,13 +48,15 @@ public class Downloader implements Runnable {
             while (!stop) {
                 boolean hasWork = false;
                 for (Download download : tasks) {
-                    switch (download.getCurentStatus()) {
+                    switch (download.getCurrentStatus()) {
                         case NEW:
                             initialize(download);
                             hasWork = true;
                             break;
                         case INITIALIZED:
                             process(download);
+                            break;
+                        case GHOST:
                             break;
                     }
                 }
@@ -74,8 +76,8 @@ public class Downloader implements Runnable {
      */
     public void initialize(Download download) throws IOException {
         boolean acquired = false;
-        while (Download.Status.NEW == download.getCurentStatus())
-            acquired = download.changeStatus(Download.Status.NEW, Download.Status.INITIALIZING, INITIALIZING_MESSAGE);
+        while (Download.Status.NEW == download.getCurrentStatus())
+            acquired = download.changeCurrentStatus(Download.Status.NEW, Download.Status.INITIALIZING, INITIALIZING_MESSAGE);
 
         if (!acquired)
             return;
@@ -98,7 +100,7 @@ public class Downloader implements Runnable {
         final BiConsumer<Throwable, AsyncTools.NetworkOperationContext> onError = (exc, ctx) -> {
             try {
                 LOG.error(exc);
-                download.complete(Download.Status.ERROR, INIT_ERROR_MESSAGE);
+                download.setCurrentStatus(Download.Status.ERROR, INIT_ERROR_MESSAGE);
                 ctx.close();
             } catch (IOException ignored) {} // Ignore ctx.close exception
         };
@@ -137,8 +139,8 @@ public class Downloader implements Runnable {
                     int contentLength = Integer.parseInt(parsedHeaders.get(Http.CONTENT_LENGTH_KEY));
 
                     target.prepareOutput(headersLength, contentLength);
-                    target.changeStatus(Download.Status.INITIALIZING, Download.Status.INITIALIZED,
-                        SUCCESSFUL_INITIALIZED_MESSAGE);
+                    target.changeCurrentStatus(Download.Status.INITIALIZING, Download.Status.INITIALIZED,
+                            SUCCESSFUL_INITIALIZED_MESSAGE);
                 }
             };
 
@@ -171,9 +173,9 @@ public class Downloader implements Runnable {
      */
     public void process(Download download) throws IOException {
         boolean acquired = false;
-        while (Download.Status.INITIALIZED == download.getCurentStatus()) {
-            acquired = download.changeStatus(Download.Status.INITIALIZED, Download.Status.DOWNLOADING,
-                SUCCESSFUL_INITIALIZED_MESSAGE);
+        while (Download.Status.INITIALIZED == download.getCurrentStatus()) {
+            acquired = download.changeCurrentStatus(Download.Status.INITIALIZED, Download.Status.DOWNLOADING,
+                    SUCCESSFUL_INITIALIZED_MESSAGE);
         }
 
         if (!acquired)
@@ -197,39 +199,25 @@ public class Downloader implements Runnable {
         final BiConsumer<Throwable, AsyncTools.NetworkOperationContext> onError = (exc, ctx) -> {
             try {
                 LOG.error(exc);
-                download.complete(Download.Status.ERROR, PROC_ERROR_MESSAGE);
+                download.setCurrentStatus(Download.Status.ERROR, PROC_ERROR_MESSAGE);
                 ctx.close();
             } catch (IOException ignored) {} // Ignore ctx.close exception
         };
 
-        // need recursive call of handler, so can't create from BiConsumer
-        final CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onReceived =
-            new CompletionHandler<Integer, AsyncTools.NetworkOperationContext>() {
-                @Override
-                public void completed(Integer read, AsyncTools.NetworkOperationContext ctx) {
-                    try{
-                        LOG.debug(String.format("Response portion has been received (%d bytes)", read));
-                        if (download.getCurentStatus() != Download.Status.DOWNLOADING) {
-                            LOG.debug(String.format("Download status has been changed: %s", download.getCurentStatus()));
-                            return;
-                        }
-                        if (!ctx.ResponseBytes.hasRemaining())
-                            ctx = new AsyncTools.NetworkOperationContext(ctx.Channel, null, download.nextOutputBuffer());
-                        if (read == -1 || ctx.ResponseBytes == null) {
-                            download.complete(Download.Status.COMPLETED, SUCCESSFUL_COMPLETED_MESSAGE);
-                            ctx.close();
-                            return;
-                        }
-                        LOG.debug("Continue reading response");
-                        ctx.Channel.read(ctx.ResponseBytes, ctx, this);
-                    } catch (IOException ignored) {} // Ignore ctx.close exception
-                }
+        final BiConsumer<Integer, AsyncTools.NetworkOperationContext> onCompleteReading = (read, ctx) -> {
+            try {
+                LOG.debug(String.format("Reading \"%s\" channel successfully completed", what));
+                download.setCurrentStatus(Download.Status.DOWNLOADED, SUCCESSFUL_COMPLETED_MESSAGE);
+                ctx.close();
+            } catch (IOException ignored) {} // Ignore ctx.close exception
+        };
 
-                @Override
-                public void failed(Throwable exc, AsyncTools.NetworkOperationContext ctx) {
-                    onError.accept(exc, ctx);
-                }
-            };
+        final AsyncTools.ChannelReader onReceived = new AsyncTools.ChannelReader(
+            new DownloadTools.DownloadOutputBuffersIterator(download),
+            () -> download.getCurrentStatus() == Download.Status.DOWNLOADING,
+            onCompleteReading,
+            onError
+        );
 
         final CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onSent = AsyncTools.handlerFrom(
             (written, ctx) -> {

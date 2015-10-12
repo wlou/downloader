@@ -8,7 +8,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Download {
@@ -19,10 +19,9 @@ public class Download {
         INITIALIZING,
         INITIALIZED,
         DOWNLOADING,
-        PAUSED,
-        STOPED,
-        COMPLETED,
-        ERROR
+        DOWNLOADED,
+        ERROR,
+        GHOST
     }
 
     public Download(URL what, Path base) {
@@ -30,9 +29,10 @@ public class Download {
         Path name = Paths.get(this.what.getFile()).getFileName();
         this.where = Paths.get(base.toString(), name.toString());
         currentStatus = new AtomicReference<>(Status.NEW);
-        skipped = new AtomicBoolean(false);
+        outputs = new ConcurrentLinkedQueue<>();
         length = 0;
         skip = 0;
+
     }
 
     public URL getWhat() {
@@ -43,50 +43,52 @@ public class Download {
         return where;
     }
 
-    public Status getCurentStatus() {
+    public String getInformation() {
+        return information;
+    }
+
+    public Status getCurrentStatus() {
         return currentStatus.get();
     }
 
-    public boolean changeStatus(Status from, Status to, String info) {
+    public boolean changeCurrentStatus(Status from, Status to, String information) {
         boolean result = false;
+        if (from == Status.GHOST)
+            return false;
         while (currentStatus.get() == from)
             result = currentStatus.compareAndSet(from, to);
-        if (result)
-            information = info;
+        if (result) {
+            this.information = information;
+            synchronized (this) { this.notify(); }
+        }
         return result;
     }
 
+    public void setCurrentStatus(Download.Status status, String information) {
+        while (!changeCurrentStatus(currentStatus.get(), status, information)) {
+            if (currentStatus.get() == Status.GHOST)
+                break;
+        }
+    }
+
     public void prepareOutput(int skip, int payload) throws IOException {
-        this.length = payload;
         this.skip = skip;
-        this.fout = new RandomAccessFile(this.where.toFile(), "rw");
-        this.fout.setLength(this.length);
-        this.buffer = fout.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, this.length);
+        if (this.skip > 0)
+            outputs.add(ByteBuffer.allocate(this.skip));
+
+        this.length = payload;
+        RandomAccessFile file = new RandomAccessFile(this.where.toFile(), "rw");
+        file.setLength(this.length);
+        mainBuffer = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, this.length);
+        outputs.add(mainBuffer);
     }
 
     public ByteBuffer nextOutputBuffer() {
-        boolean skipper = false;
-        while (!skipped.get())
-            skipper = skipped.compareAndSet(false, true);
-        if (skipper)
-            return ByteBuffer.allocate(skip);
-        if (this.buffer.hasRemaining())
-            return this.buffer;
-        return null;
-    }
-
-    public void complete(Download.Status status, String info) {
-        try {
-            if (fout != null)
-                fout.close();
-            currentStatus.set(status);
-            information = info;
-            synchronized (this) {this.notify();}
-        } catch (IOException ignored) { }
+        return outputs.poll();
     }
 
     public int progress() {
-        return 100 * (length - buffer.remaining())/length;
+        return (100 * (length - mainBuffer.remaining()))/length;
     }
 
     private final URL what;
@@ -95,11 +97,8 @@ public class Download {
     private final AtomicReference<Status> currentStatus;
     private volatile String information;
 
-
-    private RandomAccessFile fout;
-    private MappedByteBuffer buffer;
+    private MappedByteBuffer mainBuffer;
+    private final ConcurrentLinkedQueue<ByteBuffer> outputs;
     private int length;
-
-    private final AtomicBoolean skipped;
     private int skip;
 }

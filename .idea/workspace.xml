@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7798dd85-971d-42e6-91ce-5c23b53a1b0b" name="Default" comment="Fix names">
+    <list default="true" id="7798dd85-971d-42e6-91ce-5c23b53a1b0b" name="Default" comment="Executors pool is fixed in Downloader">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadTools.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/wlou/jbdownloader/gui/Application.java" afterPath="$PROJECT_DIR$/src/org/wlou/jbdownloader/gui/Application.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/wlou/jbdownloader/AsyncTools.java" afterPath="$PROJECT_DIR$/src/org/wlou/jbdownloader/AsyncTools.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/wlou/jbdownloader/Download.java" afterPath="$PROJECT_DIR$/src/org/wlou/jbdownloader/Download.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadManager.java" afterPath="$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadManager.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/wlou/jbdownloader/Downloader.java" afterPath="$PROJECT_DIR$/src/org/wlou/jbdownloader/Downloader.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -29,28 +34,26 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Downloader.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Downloader.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Downloader.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="9.551724">
-              <caret line="187" column="53" selection-start-line="187" selection-start-column="53" selection-end-line="187" selection-end-column="53" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#4879#4880#0" expanded="true" />
-                <element signature="e#4943#4944#0" expanded="true" />
-                <element signature="e#10141#10142#0" expanded="true" />
-                <element signature="e#10205#10206#0" expanded="true" />
-              </folding>
+            <state vertical-scroll-proportion="-5.0842104">
+              <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="AsynchronousChannelGroup.java" pinned="false" current-in-tab="false">
-        <entry file="jar://C:/Program Files/Java/jdk1.8.0_45/src.zip!/java/nio/channels/AsynchronousChannelGroup.java">
+      <file leaf-file-name="DownloadTools.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadTools.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="268" column="64" selection-start-line="268" selection-start-column="64" selection-end-line="268" selection-end-column="64" />
-              <folding />
+              <caret line="20" column="50" selection-start-line="20" selection-start-column="50" selection-end-line="20" selection-end-column="50" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#595#596#0" expanded="true" />
+                <element signature="e#656#657#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -68,19 +71,27 @@
       <file leaf-file-name="Download.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Download.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-10.620689">
-              <caret line="50" column="31" selection-start-line="50" selection-start-column="31" selection-end-line="50" selection-end-column="31" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="70" column="9" selection-start-line="70" selection-start-column="9" selection-end-line="70" selection-end-column="9" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#949#950#0" expanded="true" />
-                <element signature="e#976#977#0" expanded="true" />
-                <element signature="e#1006#1007#0" expanded="true" />
-                <element signature="e#1034#1035#0" expanded="true" />
-                <element signature="e#1073#1074#0" expanded="true" />
-                <element signature="e#1115#1116#0" expanded="true" />
-                <element signature="e#2414#2415#0" expanded="true" />
-                <element signature="e#2479#2480#0" expanded="true" />
+                <element signature="e#1063#1064#0" expanded="true" />
+                <element signature="e#1097#1098#0" expanded="true" />
+                <element signature="e#2380#2381#0" expanded="true" />
+                <element signature="e#2417#2418#0" expanded="true" />
+                <element signature="e#2446#2447#0" expanded="true" />
+                <element signature="e#2517#2518#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ConcurrentLinkedQueue.java" pinned="false" current-in-tab="false">
+        <entry file="jar://C:/Program Files/Java/jdk1.8.0_45/src.zip!/java/util/concurrent/ConcurrentLinkedQueue.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="355" column="13" selection-start-line="355" selection-start-column="13" selection-end-line="355" selection-end-column="13" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -88,7 +99,7 @@
       <file leaf-file-name="HttpHead.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/http/HttpHead.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-12.379311">
+            <state vertical-scroll-proportion="0.0">
               <caret line="59" column="27" selection-start-line="59" selection-start-column="27" selection-end-line="59" selection-end-column="27" />
               <folding />
             </state>
@@ -99,7 +110,7 @@
         <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/gui/Application.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="27" column="27" selection-start-line="27" selection-start-column="27" selection-end-line="27" selection-end-column="27" />
+              <caret line="33" column="17" selection-start-line="33" selection-start-column="17" selection-end-line="33" selection-end-column="17" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -107,26 +118,14 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DownloadManager.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="DownloadManager.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.74861366">
-              <caret line="50" column="28" selection-start-line="50" selection-start-column="28" selection-end-line="50" selection-end-column="28" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="39" column="5" selection-start-line="39" selection-start-column="5" selection-end-line="39" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#879#880#0" expanded="true" />
-                <element signature="e#931#932#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="FileSystem.java" pinned="false" current-in-tab="false">
-        <entry file="jar://C:/Program Files/Java/jdk1.8.0_45/src.zip!/java/nio/file/FileSystem.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="294" column="25" selection-start-line="294" selection-start-column="25" selection-end-line="294" selection-end-column="25" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -134,10 +133,12 @@
       <file leaf-file-name="AsyncTools.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/AsyncTools.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-14.362069">
-              <caret line="49" column="41" selection-start-line="49" selection-start-column="41" selection-end-line="49" selection-end-column="41" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="127" column="39" selection-start-line="127" selection-start-column="39" selection-end-line="127" selection-end-column="39" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#4490#4491#0" expanded="true" />
+                <element signature="e#4528#4529#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -183,11 +184,11 @@
         <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/http/Http.java" />
         <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/http/HttpGet.java" />
         <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/http/HttpHead.java" />
-        <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadTools.java" />
-        <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/gui/Application.java" />
         <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/Download.java" />
-        <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/AsyncTools.java" />
+        <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadTools.java" />
         <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/Downloader.java" />
+        <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/gui/Application.java" />
+        <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/AsyncTools.java" />
         <option value="$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadManager.java" />
       </list>
     </option>
@@ -227,6 +228,8 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scratches" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -377,9 +380,7 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -636,7 +637,13 @@
       <option name="project" value="LOCAL" />
       <updated>1444601085623</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Executors pool is fixed in Downloader">
+      <created>1444601382453</created>
+      <option name="number" value="00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1444601382453</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -656,11 +663,11 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295964" sideWeight="0.496875" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295964" sideWeight="0.4875" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295964" sideWeight="0.503125" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3295964" sideWeight="0.51875" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3295964" sideWeight="0.484375" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3295964" sideWeight="0.48125" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -696,7 +703,8 @@
     <MESSAGE value="Following features are implemented:&#10;- Http HEAD parser &#10;- Download initialization&#10;- Download buffers querying" />
     <MESSAGE value="Here we are!&#10;Now it is possible to download one hardcoded url." />
     <MESSAGE value="Fix names" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix names" />
+    <MESSAGE value="Executors pool is fixed in Downloader" />
+    <option name="LAST_COMMIT_MESSAGE" value="Executors pool is fixed in Downloader" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">
@@ -704,7 +712,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Downloader.java</url>
-          <line>72</line>
+          <line>74</line>
           <properties />
           <option name="timeStamp" value="4" />
         </line-breakpoint>
@@ -718,70 +726,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_45/src.zip!/java/nio/channels/AsynchronousSocketChannel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="240" column="46" selection-start-line="240" selection-start-column="46" selection-end-line="240" selection-end-column="46" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_45/src.zip!/java/net/SocketAddress.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="40" column="35" selection-start-line="40" selection-start-column="22" selection-end-line="40" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/gui/Application.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Download.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#949#950#0" expanded="true" />
-            <element signature="e#976#977#0" expanded="true" />
-            <element signature="e#1006#1007#0" expanded="true" />
-            <element signature="e#1034#1035#0" expanded="true" />
-            <element signature="e#1073#1074#0" expanded="true" />
-            <element signature="e#1115#1116#0" expanded="true" />
-            <element signature="e#2414#2415#0" expanded="true" />
-            <element signature="e#2479#2480#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Downloader.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="39" column="0" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#4879#4880#0" expanded="true" />
-            <element signature="e#4943#4944#0" expanded="true" />
-            <element signature="e#10141#10142#0" expanded="true" />
-            <element signature="e#10205#10206#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/JBDownloader.iml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://C:/Program Files/Java/jdk1.8.0_45/src.zip!/java/net/SocketAddress.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -830,7 +774,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="44" column="17" selection-start-line="44" selection-start-column="17" selection-end-line="44" selection-end-column="17" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -900,11 +843,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="false" />
-            <element signature="e#800#801#0" expanded="false" />
-            <element signature="e#834#835#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -912,7 +850,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="9" column="63" selection-start-line="9" selection-start-column="63" selection-end-line="9" selection-end-column="63" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -920,7 +857,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -943,10 +879,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33333334">
           <caret line="40" column="11" selection-start-line="40" selection-start-column="11" selection-end-line="40" selection-end-column="11" />
-          <folding>
-            <element signature="e#592#593#0" expanded="false" />
-            <element signature="e#615#616#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1004,7 +936,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33333334">
           <caret line="49" column="6" selection-start-line="49" selection-start-column="6" selection-end-line="49" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1028,7 +959,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33264032">
           <caret line="249" column="31" selection-start-line="249" selection-start-column="31" selection-end-line="249" selection-end-column="31" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1036,7 +966,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.35135135">
           <caret line="348" column="23" selection-start-line="348" selection-start-column="23" selection-end-line="348" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1052,10 +981,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33333334">
           <caret line="203" column="21" selection-start-line="203" selection-start-column="21" selection-end-line="203" selection-end-column="21" />
-          <folding>
-            <element signature="e#5214#5215#0" expanded="false" />
-            <element signature="e#5290#5291#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1071,7 +996,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="294" column="25" selection-start-line="294" selection-start-column="25" selection-end-line="294" selection-end-column="25" />
-          <folding />
+          <folding>
+            <element signature="e#0#20932#0" expanded="false" />
+            <element signature="imports" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1091,45 +1019,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_45/src.zip!/java/util/concurrent/ConcurrentLinkedQueue.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33333334">
-          <caret line="325" column="19" selection-start-line="325" selection-start-column="19" selection-end-line="325" selection-end-column="19" />
-          <folding>
-            <element signature="e#11364#11365#0" expanded="true" />
-            <element signature="e#11395#11396#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/AsyncTools.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-14.362069">
-          <caret line="49" column="41" selection-start-line="49" selection-start-column="41" selection-end-line="49" selection-end-column="41" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Download.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.620689">
-          <caret line="50" column="31" selection-start-line="50" selection-start-column="31" selection-end-line="50" selection-end-column="31" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#949#950#0" expanded="true" />
-            <element signature="e#976#977#0" expanded="true" />
-            <element signature="e#1006#1007#0" expanded="true" />
-            <element signature="e#1034#1035#0" expanded="true" />
-            <element signature="e#1073#1074#0" expanded="true" />
-            <element signature="e#1115#1116#0" expanded="true" />
-            <element signature="e#2414#2415#0" expanded="true" />
-            <element signature="e#2479#2480#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/http/HttpGet.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1140,22 +1029,92 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/http/HttpHead.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-12.379311">
+        <state vertical-scroll-proportion="0.0">
           <caret line="59" column="27" selection-start-line="59" selection-start-column="27" selection-end-line="59" selection-end-column="27" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Downloader.java">
+    <entry file="jar://$PROJECT_DIR$/contrib/log4j-1.2.9.jar!/org/apache/log4j/spi/LoggerRepository.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="9.551724">
-          <caret line="187" column="53" selection-start-line="187" selection-start-column="53" selection-end-line="187" selection-end-column="53" />
+        <state vertical-scroll-proportion="0.38590202">
+          <caret line="28" column="11" selection-start-line="28" selection-start-column="11" selection-end-line="28" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/contrib/log4j-1.2.9.jar!/org/apache/log4j/LogManager.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.77180403">
+          <caret line="58" column="59" selection-start-line="58" selection-start-column="59" selection-end-line="58" selection-end-column="59" />
+          <folding>
+            <element signature="e#2146#2147#0" expanded="true" />
+            <element signature="e#2225#2226#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/contrib/log4j-1.2.9.jar!/org/apache/log4j/Logger.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.28434888">
+          <caret line="19" column="31" selection-start-line="19" selection-start-column="31" selection-end-line="19" selection-end-column="31" />
+          <folding>
+            <element signature="e#359#360#0" expanded="true" />
+            <element signature="e#386#387#0" expanded="true" />
+            <element signature="e#437#438#0" expanded="true" />
+            <element signature="e#486#487#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/contrib/log4j-1.2.9.jar!/org/apache/log4j/helpers/AppenderAttachableImpl.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.34408602">
+          <caret line="84" column="16" selection-start-line="84" selection-start-column="16" selection-end-line="84" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/contrib/log4j-1.2.9.jar!/org/apache/log4j/Category.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3847073">
+          <caret line="351" column="27" selection-start-line="351" selection-start-column="27" selection-end-line="351" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_45/src.zip!/java/util/concurrent/ConcurrentLinkedQueue.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="355" column="13" selection-start-line="355" selection-start-column="13" selection-end-line="355" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadTools.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="20" column="50" selection-start-line="20" selection-start-column="50" selection-end-line="20" selection-end-column="50" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#4879#4880#0" expanded="true" />
-            <element signature="e#4943#4944#0" expanded="true" />
-            <element signature="e#10141#10142#0" expanded="true" />
-            <element signature="e#10205#10206#0" expanded="true" />
+            <element signature="e#595#596#0" expanded="true" />
+            <element signature="e#656#657#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Download.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="70" column="9" selection-start-line="70" selection-start-column="9" selection-end-line="70" selection-end-column="9" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#1063#1064#0" expanded="true" />
+            <element signature="e#1097#1098#0" expanded="true" />
+            <element signature="e#2380#2381#0" expanded="true" />
+            <element signature="e#2417#2418#0" expanded="true" />
+            <element signature="e#2446#2447#0" expanded="true" />
+            <element signature="e#2517#2518#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1163,22 +1122,40 @@
     <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/gui/Application.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="27" selection-start-line="27" selection-start-column="27" selection-end-line="27" selection-end-column="27" />
+          <caret line="33" column="17" selection-start-line="33" selection-start-column="17" selection-end-line="33" selection-end-column="17" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadManager.java">
+    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/AsyncTools.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.74861366">
-          <caret line="50" column="28" selection-start-line="50" selection-start-column="28" selection-end-line="50" selection-end-column="28" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="127" column="39" selection-start-line="127" selection-start-column="39" selection-end-line="127" selection-end-column="39" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#879#880#0" expanded="true" />
-            <element signature="e#931#932#0" expanded="true" />
+            <element signature="e#4490#4491#0" expanded="true" />
+            <element signature="e#4528#4529#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/DownloadManager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="39" column="5" selection-start-line="39" selection-start-column="5" selection-end-line="39" selection-end-column="5" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/wlou/jbdownloader/Downloader.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.0842104">
+          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
