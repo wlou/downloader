@@ -3,12 +3,13 @@ package org.wlou.jbdownloader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class DownloadManager implements AutoCloseable {
+public class DownloadManager extends Observable implements AutoCloseable {
 
     public DownloadManager() throws IOException {
         downloads = new ConcurrentLinkedQueue<>();
@@ -19,6 +20,8 @@ public class DownloadManager implements AutoCloseable {
 
     public void addDownload(Download download) {
         downloads.add(download);
+        setChanged();
+        notifyObservers();
         synchronized (downloads) { downloads.notify(); }
     }
 
@@ -31,6 +34,8 @@ public class DownloadManager implements AutoCloseable {
     public void removeDownload(Download download) {
         download.setCurrentStatus(Download.Status.GHOST, null);
         downloads.remove(download);
+        setChanged();
+        notifyObservers();
         synchronized (downloads) { downloads.notify(); }
     }
 

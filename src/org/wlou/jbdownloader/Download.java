@@ -8,10 +8,10 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class Download {
+public class Download extends Observable {
 
     public enum Status
     {
@@ -28,11 +28,8 @@ public class Download {
         this.what = what;
         Path name = Paths.get(this.what.getFile()).getFileName();
         this.where = Paths.get(base.toString(), name.toString());
-        currentStatus = new AtomicReference<>(Status.NEW);
+        currentStatus = Status.NEW;
         outputs = new ConcurrentLinkedQueue<>();
-        length = 0;
-        skip = 0;
-
     }
 
     public URL getWhat() {
@@ -48,39 +45,25 @@ public class Download {
     }
 
     public Status getCurrentStatus() {
-        return currentStatus.get();
-    }
-
-    public boolean changeCurrentStatus(Status from, Status to, String information) {
-        boolean result = false;
-        if (from == Status.GHOST)
-            return false;
-        while (currentStatus.get() == from)
-            result = currentStatus.compareAndSet(from, to);
-        if (result) {
-            this.information = information;
-            synchronized (this) { this.notify(); }
-        }
-        return result;
+        return currentStatus;
     }
 
     public void setCurrentStatus(Download.Status status, String information) {
-        while (!changeCurrentStatus(currentStatus.get(), status, information)) {
-            if (currentStatus.get() == Status.GHOST)
-                break;
-        }
+        this.currentStatus = status;
+        this.information = information;
+        setChanged();
+        notifyObservers();
     }
 
     public void prepareOutput(int skip, int payload) throws IOException {
-        this.skip = skip;
-        if (this.skip > 0)
-            outputs.add(ByteBuffer.allocate(this.skip));
-
-        this.length = payload;
-        RandomAccessFile file = new RandomAccessFile(this.where.toFile(), "rw");
-        file.setLength(this.length);
-        mainBuffer = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, this.length);
-        outputs.add(mainBuffer);
+        if (skip > 0)
+            outputs.add(ByteBuffer.allocate(skip));
+        if (payload > 0) {
+            RandomAccessFile file = new RandomAccessFile(this.where.toFile(), "rw");
+            file.setLength(payload);
+            mainBuffer = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, payload);
+            outputs.add(mainBuffer);
+        }
     }
 
     public ByteBuffer nextOutputBuffer() {
@@ -88,17 +71,15 @@ public class Download {
     }
 
     public int progress() {
-        return (100 * (length - mainBuffer.remaining()))/length;
+        return (100 * (mainBuffer.capacity() - mainBuffer.remaining()))/mainBuffer.capacity();
     }
 
     private final URL what;
     private final Path where;
 
-    private final AtomicReference<Status> currentStatus;
+    private volatile Status currentStatus;
     private volatile String information;
 
     private MappedByteBuffer mainBuffer;
     private final ConcurrentLinkedQueue<ByteBuffer> outputs;
-    private int length;
-    private int skip;
 }
