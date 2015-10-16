@@ -33,7 +33,9 @@ public final class DownloadTools {
 
         @Override
         public ByteBuffer next() {
-            return source.nextOutputBuffer();
+            synchronized (source) {
+                return source.nextOutputBuffer();
+            }
         }
 
         private final Download source;
@@ -59,8 +61,8 @@ public final class DownloadTools {
         synchronized (target) {
             if (target.getCurrentStatus() != Download.Status.INITIALIZING)
                 return;
-            target.prepareOutput (headersLength, contentLength);
-            target.setCurrentStatus( Download.Status.INITIALIZED, SUCCESSFUL_INITIALIZED_MESSAGE);
+            target.prepareOutput(headersLength, contentLength);
+            target.setCurrentStatus(Download.Status.INITIALIZED, SUCCESSFUL_INITIALIZED_MESSAGE);
             target.notify();
         }
     }

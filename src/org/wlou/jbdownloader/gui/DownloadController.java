@@ -4,7 +4,10 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.wlou.jbdownloader.Download;
 
-public class DownloadController {
+import java.util.Observable;
+import java.util.Observer;
+
+public class DownloadController implements Observer {
     private final StringProperty srcUrl;
     private final StringProperty targetFile;
     private final StringProperty information;
@@ -29,4 +32,9 @@ public class DownloadController {
     public StringProperty informationProperty() { return information; }
 
     private final Download download;
+
+    @Override
+    public void update(Observable o, Object arg) {
+
+    }
 }

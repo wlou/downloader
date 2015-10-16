@@ -8,8 +8,9 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.Observable;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Queue;
 
 public class Download extends Observable {
 
@@ -29,7 +30,6 @@ public class Download extends Observable {
         Path name = Paths.get(this.what.getFile()).getFileName();
         this.where = Paths.get(base.toString(), name.toString());
         currentStatus = Status.NEW;
-        outputs = new ConcurrentLinkedQueue<>();
     }
 
     public URL getWhat() {
@@ -56,6 +56,7 @@ public class Download extends Observable {
     }
 
     public void prepareOutput(int skip, int payload) throws IOException {
+        outputs = new LinkedList<>();
         if (skip > 0)
             outputs.add(ByteBuffer.allocate(skip));
         if (payload > 0) {
@@ -81,5 +82,5 @@ public class Download extends Observable {
     private volatile String information;
 
     private MappedByteBuffer mainBuffer;
-    private final ConcurrentLinkedQueue<ByteBuffer> outputs;
+    private Queue<ByteBuffer> outputs;
 }

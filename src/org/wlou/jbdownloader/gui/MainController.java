@@ -9,7 +9,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.ProgressBarTableCell;
 import javafx.stage.Stage;
 
-public class MainController {
+import java.util.Observable;
+import java.util.Observer;
+
+public class MainController implements Observer {
 
     private Stage mainStage = null;
     private ObservableList<DownloadController> tasks = FXCollections.observableArrayList();
@@ -41,4 +44,9 @@ public class MainController {
     }
 
     public void setMainStage(Stage mainStage) { this.mainStage = mainStage; }
+
+    @Override
+    public void update(Observable o, Object arg) {
+
+    }
 }
