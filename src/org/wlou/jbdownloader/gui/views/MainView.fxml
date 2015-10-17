@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.pixelduke.javafx.validation.ErrorLabel?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.wlou.jbdownloader.gui.controls.UrlValidator?>
+<GridPane alignment="CENTER" hgap="5.0" prefHeight="345.0" prefWidth="501.0" vgap="5.0" xmlns="http://javafx.com/javafx/8"
+          xmlns:fx="http://javafx.com/fxml" fx:controller="org.wlou.jbdownloader.gui.controllers.MainController">
+    <children>
+        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="0" >
+            <left>
+                <Label text="Base directory:" BorderPane.alignment="CENTER">
+                    <BorderPane.margin>
+                        <Insets left="10.0" />
+                    </BorderPane.margin>
+                </Label>
+            </left>
+            <right>
+                <Button mnemonicParsing="false" prefWidth="71.0" text="Select" BorderPane.alignment="CENTER">
+                    <BorderPane.margin>
+                        <Insets left="10.0" right="10.0" />
+                    </BorderPane.margin>
+                </Button>
+            </right>
+            <center>
+                <TextField fx:id="baseDirField" editable="false" BorderPane.alignment="CENTER">
+                    <BorderPane.margin>
+                        <Insets left="10.0" />
+                    </BorderPane.margin>
+                </TextField>
+            </center>
+        </BorderPane>
+        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
+            <left>
+                <Label text="Url:" BorderPane.alignment="CENTER">
+                    <BorderPane.margin>
+                        <Insets left="10.0" />
+                    </BorderPane.margin>
+                </Label>
+            </left>
+            <right>
+                <Button mnemonicParsing="false" onAction="#addNewDownload" prefWidth="71.0" text="Download" BorderPane.alignment="CENTER">
+                    <BorderPane.margin>
+                        <Insets left="10.0" right="10.0" />
+                    </BorderPane.margin>
+                </Button>
+            </right>
+            <center>
+                <TextField fx:id="urlField" BorderPane.alignment="CENTER">
+                    <BorderPane.margin>
+                        <Insets left="10.0" />
+                    </BorderPane.margin>
+                </TextField>
+            </center>
+            <fx:define>
+                <UrlValidator fx:id="urlFieldValidator">
+                    <srcControl>
+                        <fx:reference source="urlField"/>
+                    </srcControl>
+                </UrlValidator>
+            </fx:define>
+        </BorderPane>
+        <ErrorLabel textFill="red" message="Please enter valid url string" GridPane.rowIndex="2">
+            <GridPane.margin>
+                <Insets left="10.0" />
+            </GridPane.margin>
+            <validator>
+                <fx:reference source="urlFieldValidator"/>
+            </validator>
+        </ErrorLabel>
+        <TableView fx:id="downloadsTableView" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="srcUrlColumn" minWidth="10.0" prefWidth="121.0" text="Url" />
+                <TableColumn fx:id="progressColumn" minWidth="10.0" prefWidth="93.0" text="Progress" />
+                <TableColumn fx:id="informationColumn" minWidth="10.0" prefWidth="117.0" text="Information" />
+                <TableColumn fx:id="targetFileColumn" minWidth="10.0" prefWidth="121.0" text="Result File" />
+            </columns>
+            <GridPane.margin>
+                <Insets bottom="10.0" left="10.0" right="10.0" />
+            </GridPane.margin>
+        </TableView>
+    </children>
+    <rowConstraints>
+        <RowConstraints fillHeight="false" maxHeight="34.0" minHeight="-Infinity" prefHeight="34.0" />
+        <RowConstraints fillHeight="false" maxHeight="34.0" minHeight="-Infinity" prefHeight="34.0" />
+        <RowConstraints />
+    </rowConstraints>
+    <padding>
+        <Insets top="5.0" />
+    </padding>
+</GridPane>

@@ -25,7 +25,8 @@ public class Download extends Observable {
         GHOST
     }
 
-    public Download(URL what, Path base) {
+    public Download(int id, URL what, Path base) {
+        this.id = id;
         this.what = what;
         Path name = Paths.get(this.what.getFile()).getFileName();
         this.where = Paths.get(base.toString(), name.toString());
@@ -71,10 +72,22 @@ public class Download extends Observable {
         return outputs.poll();
     }
 
-    public int progress() {
-        return (100 * (mainBuffer.capacity() - mainBuffer.remaining()))/mainBuffer.capacity();
+    public void updateProgress() {
+        setChanged();
+        notifyObservers();
     }
 
+    public double getProgress() {
+        if (mainBuffer != null)
+            return (double)(mainBuffer.capacity() - mainBuffer.remaining())/(double)mainBuffer.capacity();
+        return 0;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    private final int id;
     private final URL what;
     private final Path where;
 

@@ -51,7 +51,7 @@ public final class HttpHead {
         int parsePos = headers[0].length();
 
         String[] status = spaceSplitter.split(headers[0].trim());
-        if (status.length != 3) // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+        if (status.length < 3) // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
             throw new ParseException(String.format("Can't parse status line: \"%s\"", headers[0].trim()), parsePos);
 
         Map<String, String> result = new HashMap<>();

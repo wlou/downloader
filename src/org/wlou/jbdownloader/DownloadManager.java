@@ -3,8 +3,9 @@ package org.wlou.jbdownloader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Observable;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -12,31 +13,38 @@ import java.util.concurrent.TimeUnit;
 public class DownloadManager extends Observable implements AutoCloseable {
 
     public DownloadManager() throws IOException {
-        downloads = new ConcurrentLinkedQueue<>();
+        downloads = new LinkedList<>();
         executors = new ThreadPoolExecutor(parallelCapacity, parallelCapacity, 0, TimeUnit.NANOSECONDS, new LinkedBlockingQueue<>());
         dispatcher = new Thread(new Downloader(downloads, executors));
         dispatcher.start();
     }
 
-    public void addDownload(Download download) {
-        downloads.add(download);
+    public Download addDownload(URL url, Path base) {
+        Download download;
+        synchronized (downloads) {
+            download = new Download(++lastId, url, base);
+            downloads.add(download);
+            downloads.notify();
+        }
         setChanged();
         notifyObservers();
-        synchronized (downloads) { downloads.notify(); }
-    }
-
-    public Download addDownload(URL url, Path base) {
-        Download download = new Download(url, base);
-        addDownload(download);
         return download;
     }
 
     public void removeDownload(Download download) {
-        download.setCurrentStatus(Download.Status.GHOST, null);
-        downloads.remove(download);
+        synchronized (download) {
+            download.setCurrentStatus(Download.Status.GHOST, null);
+        }
+        synchronized (downloads) {
+            downloads.remove(download);
+            downloads.notifyAll();
+        }
         setChanged();
         notifyObservers();
-        synchronized (downloads) { downloads.notify(); }
+    }
+
+    public List<Download> getDownloads() {
+        return downloads;
     }
 
     public void setParallelCapacity(int capacity) {
@@ -53,7 +61,8 @@ public class DownloadManager extends Observable implements AutoCloseable {
 
     private final Thread dispatcher;
     private final ThreadPoolExecutor executors;
-    private final ConcurrentLinkedQueue<Download> downloads;
+    private final List<Download> downloads;
 
+    int lastId = 0;
     int parallelCapacity = 2;
 }

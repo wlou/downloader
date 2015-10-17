@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 
@@ -25,7 +25,7 @@ public class Downloader implements Runnable {
 
     private static Logger LOG = Logger.getLogger(Downloader.class.getName());
 
-    public Downloader(ConcurrentLinkedQueue<Download> tasks, ExecutorService executors) throws IOException {
+    public Downloader(List<Download> tasks, ExecutorService executors) throws IOException {
         stop = false;
         channels = AsynchronousChannelGroup.withThreadPool(executors);
         this.tasks = tasks;
@@ -60,22 +60,48 @@ public class Downloader implements Runnable {
         }
     }
 
+    public void stop() {
+        stop = true;
+        synchronized (tasks) { tasks.notifyAll(); }
+    }
+
     /**
      * @param download
      * @throws IOException
      */
     public void initialize(Download download) throws IOException {
-        synchronized (download) {
-            if (download.getCurrentStatus() != Download.Status.NEW)
+        final Download snap = download;
+
+        synchronized (snap) {
+            if (snap.getCurrentStatus() != Download.Status.NEW)
                 return;
-            download.setCurrentStatus(Download.Status.INITIALIZING, DownloadTools.INITIALIZING_MESSAGE);
-            download.notify();
+            snap.setCurrentStatus(Download.Status.INITIALIZING, DownloadTools.INITIALIZING_MESSAGE);
+            snap.notify();
         }
 
+        // Initialization error handler
+        final BiConsumer<Throwable, AsyncTools.NetworkOperationContext> onError = (exc, ctx) -> {
+            try {
+                LOG.error(exc);
+                synchronized (snap) {
+                    snap.setCurrentStatus(Download.Status.ERROR, DownloadTools.INIT_ERROR_MESSAGE);
+                    snap.notify();
+                }
+                if (ctx != null)
+                    ctx.close();
+            } catch (IOException ignored) {} // Ignore ctx.close exception
+        };
+
         // Prepare endpoint parameters.
-        final Download snap = download;
         final URL what = snap.getWhat();
-        final SocketAddress remote = new InetSocketAddress(InetAddress.getByName(what.getHost()), Http.DEFAULT_PORT);
+        SocketAddress remote = null;
+        try {
+            remote = new InetSocketAddress(InetAddress.getByName(what.getHost()), Http.DEFAULT_PORT);
+        }
+        catch (Exception e) {
+            onError.accept(e, null);
+            return;
+        }
 
         // Prepare context.
         AsyncTools.NetworkOperationContext context = new AsyncTools.NetworkOperationContext(
@@ -89,17 +115,7 @@ public class Downloader implements Runnable {
         // [Connect] -> [Send HEAD request] -> [Handle HEAD response]
         // The process based on callbacks, so define them in the reversed order.
 
-        final BiConsumer<Throwable, AsyncTools.NetworkOperationContext> onError = (exc, ctx) -> {
-            try {
-                LOG.error(exc);
-                synchronized (snap) {
-                    snap.setCurrentStatus(Download.Status.ERROR, DownloadTools.INIT_ERROR_MESSAGE);
-                    snap.notify();
-                }
-                ctx.close();
-            } catch (IOException ignored) {} // Ignore ctx.close exception
-        };
-
+        // FIXME: use channel reader
         final CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onReceived = AsyncTools.handlerFrom(
             (read, ctx) -> {
                 String responseString = ctx.responseString(read, Http.DEFAULT_CONTENT_CHARSET);
@@ -110,9 +126,10 @@ public class Downloader implements Runnable {
                 catch (Exception exc) {
                     onError.accept(exc, ctx);
                 }
-                synchronized (tasks) { tasks.notify(); }
+                synchronized (tasks) { tasks.notifyAll(); }
                 try {
-                    ctx.close();
+                    if (ctx != null)
+                        ctx.close();
                 }
                 catch (IOException ignored) {}
             },
@@ -177,7 +194,8 @@ public class Downloader implements Runnable {
                     snap.setCurrentStatus(Download.Status.ERROR, DownloadTools.PROC_ERROR_MESSAGE);
                     snap.notify();
                 }
-                ctx.close();
+                if (ctx != null)
+                    ctx.close();
             } catch (IOException ignored) {} // Ignore ctx.close exception
         };
 
@@ -188,13 +206,17 @@ public class Downloader implements Runnable {
                     snap.setCurrentStatus(Download.Status.DOWNLOADED, DownloadTools.SUCCESSFUL_COMPLETED_MESSAGE);
                     snap.notify();
                 }
-                ctx.close();
+                if (ctx != null)
+                    ctx.close();
             } catch (IOException ignored) {} // Ignore ctx.close exception
         };
 
         final AsyncTools.ChannelReader onReceived = new AsyncTools.ChannelReader(
             new DownloadTools.DownloadOutputBuffersIterator(snap),
-            () -> snap.getCurrentStatus() == Download.Status.DOWNLOADING,
+            () -> {
+                snap.updateProgress();
+                return snap.getCurrentStatus() == Download.Status.DOWNLOADING;
+            },
             onCompleteReading,
             onError
         );
@@ -224,6 +246,6 @@ public class Downloader implements Runnable {
     }
 
     private volatile boolean stop;
-    private final ConcurrentLinkedQueue<Download> tasks;
+    private final List<Download> tasks;
     private final AsynchronousChannelGroup channels;
 }
