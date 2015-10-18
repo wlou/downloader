@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader;
+package org.wlou.jbdownloader.lib;
 
 import org.apache.log4j.Logger;
 
@@ -66,8 +66,11 @@ public final class AsyncTools {
         }
 
         @Override
-        public void close() throws IOException {
-            Channel.close();
+        public void close() {
+            try {
+                Channel.close();
+            }
+            catch (IOException ignored) {}
         }
     }
 
@@ -113,27 +116,35 @@ public final class AsyncTools {
 
         @Override
         public void completed(Integer read, NetworkOperationContext ctx) {
-            log.debug(String.format("Response portion has been received (%d bytes)", read));
-            if (proceedReading != null && !proceedReading.get()) {
-                log.debug("Reader has been interrupted");
-                return;
+            try {
+
+                log.debug(String.format("Response portion has been received (%d bytes)", read));
+                if (proceedReading != null && !proceedReading.get()) {
+                    log.debug("Reader has been interrupted");
+                    return;
+                }
+                if (!ctx.ResponseBytes.hasRemaining())
+                    ctx = new NetworkOperationContext(ctx.Channel, ctx.RequestString, buffers.next());
+                if (read == -1 || ctx.ResponseBytes == null) {
+                    log.debug("Completing reader cleanly");
+                    if (completionHandler != null)
+                        completionHandler.accept(read, ctx);
+                    return;
+                }
+                log.debug("Continue reading response");
+                ctx.Channel.read(ctx.ResponseBytes, ctx, this);
             }
-            if (!ctx.ResponseBytes.hasRemaining())
-                ctx = new NetworkOperationContext(ctx.Channel, ctx.RequestString, buffers.next());
-            if (read == -1 || ctx.ResponseBytes == null) {
-                log.debug("Completing reader cleanly");
-                if (completionHandler != null)
-                    completionHandler.accept(read, ctx);
-                return;
+            catch (Exception e) {
+                failed(e, ctx);
             }
-            log.debug("Continue reading response");
-            ctx.Channel.read(ctx.ResponseBytes, ctx, this);
         }
 
         @Override
         public void failed(Throwable exc, NetworkOperationContext ctx) {
             if (errorHandler != null)
                 errorHandler.accept(exc, ctx);
+            if (ctx != null)
+                ctx.close();
         }
 
         public void setLog(Logger log) {

@@ -6,7 +6,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.wlou.jbdownloader.Download;
+import org.wlou.jbdownloader.lib.Download;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -34,6 +34,10 @@ public class DownloadController implements Observer {
     public StringProperty targetFileProperty() { return targetFile; }
     public StringProperty informationProperty() { return information; }
     public DoubleProperty progressProperty() { return progress; }
+
+    public Download getDownload() {
+        return download;
+    }
 
     @Override
     public void update(Observable o, Object arg) {

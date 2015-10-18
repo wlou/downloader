@@ -1,9 +1,6 @@
-package org.wlou.jbdownloader;
+package org.wlou.jbdownloader.lib;
 
 import org.apache.log4j.Logger;
-import org.wlou.jbdownloader.http.Http;
-import org.wlou.jbdownloader.http.HttpGet;
-import org.wlou.jbdownloader.http.HttpHead;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -14,7 +11,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 
@@ -25,10 +24,12 @@ public class Downloader implements Runnable {
 
     private static Logger LOG = Logger.getLogger(Downloader.class.getName());
 
-    public Downloader(List<Download> tasks, ExecutorService executors) throws IOException {
+    public Downloader(List<Download> downloads, ExecutorService executors) throws IOException {
         stop = false;
+        httpParams = new HashMap<>();
+        httpParams.put(HttpTools.CONNECTION_DIRECTIVE, HttpTools.CONNECTION_KEEP_ALIVE);
         channels = AsynchronousChannelGroup.withThreadPool(executors);
-        this.tasks = tasks;
+        tasks = downloads;
     }
 
     /**
@@ -70,33 +71,29 @@ public class Downloader implements Runnable {
      * @throws IOException
      */
     public void initialize(Download download) throws IOException {
-        final Download snap = download;
-
-        synchronized (snap) {
-            if (snap.getCurrentStatus() != Download.Status.NEW)
+        synchronized (download) {
+            if (download.getCurrentStatus() != Download.Status.NEW)
                 return;
-            snap.setCurrentStatus(Download.Status.INITIALIZING, DownloadTools.INITIALIZING_MESSAGE);
-            snap.notify();
+            download.setCurrentStatus(Download.Status.INITIALIZING, DownloadTools.INITIALIZING_MESSAGE);
+            download.notifyAll();
         }
 
         // Initialization error handler
         final BiConsumer<Throwable, AsyncTools.NetworkOperationContext> onError = (exc, ctx) -> {
-            try {
-                LOG.error(exc);
-                synchronized (snap) {
-                    snap.setCurrentStatus(Download.Status.ERROR, DownloadTools.INIT_ERROR_MESSAGE);
-                    snap.notify();
-                }
-                if (ctx != null)
-                    ctx.close();
-            } catch (IOException ignored) {} // Ignore ctx.close exception
+            LOG.error(exc);
+            synchronized (download) {
+                download.setCurrentStatus(Download.Status.ERROR, DownloadTools.INIT_ERROR_MESSAGE);
+                download.notifyAll();
+            }
+            if (ctx != null)
+                ctx.close();
         };
 
         // Prepare endpoint parameters.
-        final URL what = snap.getWhat();
-        SocketAddress remote = null;
+        final URL what = download.getWhat();
+        SocketAddress remote;
         try {
-            remote = new InetSocketAddress(InetAddress.getByName(what.getHost()), Http.DEFAULT_PORT);
+            remote = new InetSocketAddress(InetAddress.getByName(what.getHost()), HttpTools.DEFAULT_PORT);
         }
         catch (Exception e) {
             onError.accept(e, null);
@@ -106,7 +103,7 @@ public class Downloader implements Runnable {
         // Prepare context.
         AsyncTools.NetworkOperationContext context = new AsyncTools.NetworkOperationContext(
             AsynchronousSocketChannel.open(channels),
-            HttpHead.makeRequest(what),
+            HttpTools.makeHeadRequest(what, httpParams),
             // FIXME: for now only short headers are supported
             ByteBuffer.allocate(1024)
         );
@@ -118,27 +115,23 @@ public class Downloader implements Runnable {
         // FIXME: use channel reader
         final CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onReceived = AsyncTools.handlerFrom(
             (read, ctx) -> {
-                String responseString = ctx.responseString(read, Http.DEFAULT_CONTENT_CHARSET);
-                LOG.debug(String.format("Head response has been received: [%s]", responseString));
                 try {
-                    DownloadTools.prepareDownload(snap, responseString);
+                    String responseString = ctx.responseString(read, HttpTools.DEFAULT_CONTENT_CHARSET);
+                    LOG.debug(String.format("Head response has been received: [%s]", responseString));
+                    DownloadTools.prepareDownload(download, responseString);
+                    synchronized (tasks) { tasks.notifyAll(); }
+                    ctx.close();
                 }
                 catch (Exception exc) {
                     onError.accept(exc, ctx);
                 }
-                synchronized (tasks) { tasks.notifyAll(); }
-                try {
-                    if (ctx != null)
-                        ctx.close();
-                }
-                catch (IOException ignored) {}
             },
             onError
         );
 
         final CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onSent = AsyncTools.handlerFrom(
             (written, ctx) -> {
-                assert ctx.requestBytes(Http.DEFAULT_CONTENT_CHARSET).limit() == written;
+                assert ctx.requestBytes(HttpTools.DEFAULT_CONTENT_CHARSET).limit() == written;
                 LOG.debug(String.format("Request of %d bytes is sent", written));
                 LOG.debug("Start reading response");
                 ctx.Channel.read(ctx.ResponseBytes, ctx, onReceived);
@@ -150,7 +143,7 @@ public class Downloader implements Runnable {
             (stub, ctx) -> {
                 LOG.debug(String.format("Domain: [%s] connected", what.getHost()));
                 LOG.debug(String.format("Sending request: [%s]", ctx.RequestString));
-                ctx.Channel.write(ctx.requestBytes(Http.DEFAULT_CONTENT_CHARSET), ctx, onSent);
+                ctx.Channel.write(ctx.requestBytes(HttpTools.DEFAULT_CONTENT_CHARSET), ctx, onSent);
             },
             onError
         );
@@ -168,19 +161,18 @@ public class Downloader implements Runnable {
             if (download.getCurrentStatus() != Download.Status.INITIALIZED)
                 return;
             download.setCurrentStatus(Download.Status.DOWNLOADING, DownloadTools.SUCCESSFUL_INITIALIZED_MESSAGE);
-            download.notify();
+            download.notifyAll();
         }
 
         // Prepare endpoint parameters.
-        final Download snap = download;
-        final URL what = snap.getWhat();
-        SocketAddress remote = new InetSocketAddress(InetAddress.getByName(what.getHost()), Http.DEFAULT_PORT);
+        final URL what = download.getWhat();
+        SocketAddress remote = new InetSocketAddress(InetAddress.getByName(what.getHost()), HttpTools.DEFAULT_PORT);
 
         // Prepare context.
         AsyncTools.NetworkOperationContext context = new AsyncTools.NetworkOperationContext(
             AsynchronousSocketChannel.open(channels),
-            HttpGet.makeRequest(what),
-            snap.nextOutputBuffer()
+            HttpTools.makeGetRequest(what, httpParams),
+            download.nextOutputBuffer()
         );
 
         // Prepare asynchronous download workflow.
@@ -188,34 +180,32 @@ public class Downloader implements Runnable {
         // The process based on callbacks, so define them in the reversed order.
 
         final BiConsumer<Throwable, AsyncTools.NetworkOperationContext> onError = (exc, ctx) -> {
-            try {
-                LOG.error(exc);
-                synchronized (snap) {
-                    snap.setCurrentStatus(Download.Status.ERROR, DownloadTools.PROC_ERROR_MESSAGE);
-                    snap.notify();
-                }
-                if (ctx != null)
-                    ctx.close();
-            } catch (IOException ignored) {} // Ignore ctx.close exception
+            LOG.error(exc);
+            synchronized (download) {
+                download.setCurrentStatus(Download.Status.ERROR, DownloadTools.PROC_ERROR_MESSAGE);
+                download.releaseBuffers();
+                download.notifyAll();
+            }
+            if (ctx != null)
+                ctx.close();
+
         };
 
         final BiConsumer<Integer, AsyncTools.NetworkOperationContext> onCompleteReading = (read, ctx) -> {
-            try {
-                LOG.debug(String.format("Reading \"%s\" channel successfully completed", what));
-                synchronized (snap) {
-                    snap.setCurrentStatus(Download.Status.DOWNLOADED, DownloadTools.SUCCESSFUL_COMPLETED_MESSAGE);
-                    snap.notify();
-                }
-                if (ctx != null)
-                    ctx.close();
-            } catch (IOException ignored) {} // Ignore ctx.close exception
+            LOG.debug(String.format("Reading \"%s\" channel successfully completed", what));
+            synchronized (download) {
+                download.setCurrentStatus(Download.Status.DOWNLOADED, DownloadTools.SUCCESSFUL_COMPLETED_MESSAGE);
+                download.releaseBuffers();
+                download.notifyAll();
+            }
+            ctx.close();
         };
 
         final AsyncTools.ChannelReader onReceived = new AsyncTools.ChannelReader(
-            new DownloadTools.DownloadOutputBuffersIterator(snap),
+            new DownloadTools.DownloadOutputBuffersIterator(download),
             () -> {
-                snap.updateProgress();
-                return snap.getCurrentStatus() == Download.Status.DOWNLOADING;
+                download.updateProgress();
+                return download.getCurrentStatus() == Download.Status.DOWNLOADING;
             },
             onCompleteReading,
             onError
@@ -223,7 +213,7 @@ public class Downloader implements Runnable {
 
         final CompletionHandler<Integer, AsyncTools.NetworkOperationContext> onSent = AsyncTools.handlerFrom(
             (written, ctx) -> {
-                assert ctx.requestBytes(Http.DEFAULT_CONTENT_CHARSET).limit() == written;
+                assert ctx.requestBytes(HttpTools.DEFAULT_CONTENT_CHARSET).limit() == written;
                 LOG.debug(String.format("Request of %d bytes is sent", written));
                 LOG.debug("Start reading response");
                 ctx.Channel.read(ctx.ResponseBytes, ctx, onReceived);
@@ -235,7 +225,7 @@ public class Downloader implements Runnable {
             (stub, ctx) -> {
                 LOG.debug(String.format("Domain: [%s] connected", what.getHost()));
                 LOG.debug(String.format("Sending request: [%s]", ctx.RequestString));
-                ctx.Channel.write(ctx.requestBytes(Http.DEFAULT_CONTENT_CHARSET), ctx, onSent);
+                ctx.Channel.write(ctx.requestBytes(HttpTools.DEFAULT_CONTENT_CHARSET), ctx, onSent);
             },
             onError
         );
@@ -248,4 +238,5 @@ public class Downloader implements Runnable {
     private volatile boolean stop;
     private final List<Download> tasks;
     private final AsynchronousChannelGroup channels;
+    private final Map<String, String> httpParams;
 }

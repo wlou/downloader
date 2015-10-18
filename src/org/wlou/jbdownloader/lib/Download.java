@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader;
+package org.wlou.jbdownloader.lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -25,11 +25,16 @@ public class Download extends Observable {
         GHOST
     }
 
-    public Download(int id, URL what, Path base) {
-        this.id = id;
+    public Download(URL what, Path base) {
         this.what = what;
-        Path name = Paths.get(this.what.getFile()).getFileName();
-        this.where = Paths.get(base.toString(), name.toString());
+        String baseName = this.what.getFile();
+        Path name = Paths.get(baseName).getFileName();
+        Path where = Paths.get(base.toString(), name.toString());
+        for (int i = 1; where.toFile().exists() && i < 100; ++i) {
+            name = Paths.get(String.format("%s.%d", baseName, i)).getFileName();
+            where = Paths.get(base.toString(), name.toString());
+        }
+        this.where = where;
         currentStatus = Status.NEW;
     }
 
@@ -63,9 +68,20 @@ public class Download extends Observable {
         if (payload > 0) {
             RandomAccessFile file = new RandomAccessFile(this.where.toFile(), "rw");
             file.setLength(payload);
-            mainBuffer = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, payload);
+            FileChannel channel = file.getChannel();
+            mainBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, payload);
+            channel.close();
             outputs.add(mainBuffer);
         }
+    }
+
+    public void releaseBuffers() {
+        // FIXME: workaround http://bugs.java.com/view_bug.do?bug_id=4724038
+        try {
+            java.lang.reflect.Method unmapMethod = FileChannel.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
+            unmapMethod.setAccessible(true);
+            unmapMethod.invoke(null, mainBuffer);
+        } catch (Exception ignored) { }
     }
 
     public ByteBuffer nextOutputBuffer() {
@@ -83,11 +99,6 @@ public class Download extends Observable {
         return 0;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    private final int id;
     private final URL what;
     private final Path where;
 

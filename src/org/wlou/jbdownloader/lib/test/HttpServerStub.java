@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader.test;
+package org.wlou.jbdownloader.lib.test;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;

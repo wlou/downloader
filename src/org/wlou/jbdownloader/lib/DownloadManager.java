@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader;
+package org.wlou.jbdownloader.lib;
 
 import java.io.IOException;
 import java.net.URL;
@@ -14,7 +14,7 @@ public class DownloadManager extends Observable implements AutoCloseable {
 
     public DownloadManager() throws IOException {
         downloads = new LinkedList<>();
-        executors = new ThreadPoolExecutor(parallelCapacity, parallelCapacity, 0, TimeUnit.NANOSECONDS, new LinkedBlockingQueue<>());
+        executors = new ThreadPoolExecutor(parallelCapacity, parallelCapacity, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         dispatcher = new Thread(new Downloader(downloads, executors));
         dispatcher.start();
     }
@@ -22,7 +22,7 @@ public class DownloadManager extends Observable implements AutoCloseable {
     public Download addDownload(URL url, Path base) {
         Download download;
         synchronized (downloads) {
-            download = new Download(++lastId, url, base);
+            download = new Download(url, base);
             downloads.add(download);
             downloads.notify();
         }
@@ -63,6 +63,5 @@ public class DownloadManager extends Observable implements AutoCloseable {
     private final ThreadPoolExecutor executors;
     private final List<Download> downloads;
 
-    int lastId = 0;
     int parallelCapacity = 2;
 }

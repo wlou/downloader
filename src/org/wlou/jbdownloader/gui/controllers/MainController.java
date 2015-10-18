@@ -1,19 +1,25 @@
 package org.wlou.jbdownloader.gui.controllers;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.ProgressBarTableCell;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import org.wlou.jbdownloader.Download;
-import org.wlou.jbdownloader.DownloadManager;
 import org.wlou.jbdownloader.gui.controls.UrlValidator;
+import org.wlou.jbdownloader.lib.Download;
+import org.wlou.jbdownloader.lib.DownloadManager;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,6 +29,12 @@ import java.util.function.Supplier;
 
 public class MainController implements Observer {
 
+    @FXML
+    private Menu parametersMenu;
+    @FXML
+    private ContextMenu downloadContextMenu;
+    @FXML
+    private MenuItem showDownloadInFMMenuItem;
     @FXML
     private TableView<DownloadController> downloadsTableView;
     @FXML
@@ -35,8 +47,6 @@ public class MainController implements Observer {
     private TableColumn<DownloadController, Double> progressColumn;
     @FXML
     private TextField baseDirField;
-    @FXML
-    private TextField urlField;
     @FXML
     private UrlValidator urlFieldValidator;
 
@@ -54,6 +64,38 @@ public class MainController implements Observer {
         }
     }
 
+    public void selectBaseDir(ActionEvent actionEvent) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        File selectedDirectory = directoryChooser.showDialog(mainStage);
+        if(selectedDirectory != null){
+            baseDirField.setText(selectedDirectory.getAbsolutePath());
+        }
+    }
+
+    public void setThreads(ActionEvent actionEvent) {
+        CheckMenuItem current = (CheckMenuItem)actionEvent.getSource();
+        current.setSelected(true);
+        for (MenuItem item: parametersMenu.getItems()) {
+            CheckMenuItem checkItem = (CheckMenuItem)item;
+            if (!checkItem.equals(current))
+                checkItem.setSelected(false);
+        }
+        manager.setParallelCapacity(Integer.parseInt(current.getId()));
+    }
+
+    public void showDownloadInFM(ActionEvent actionEvent) throws IOException {
+        DownloadController dc = downloadsTableView.getSelectionModel().getSelectedItem();
+        Download d = dc.getDownload();
+        if (d.getCurrentStatus() == Download.Status.DOWNLOADED)
+            Desktop.getDesktop().open(d.getWhere().getParent().toFile());
+    }
+
+    public void removeDownload(ActionEvent actionEvent) {
+        DownloadController dc = downloadsTableView.getSelectionModel().getSelectedItem();
+        Download d = dc.getDownload();
+        manager.removeDownload(d);
+    }
+
     @FXML
     private void initialize(){
         baseDirField.setText(Paths.get(".").toAbsolutePath().normalize().toString());
@@ -62,6 +104,22 @@ public class MainController implements Observer {
         informationColumn.setCellValueFactory(cellData -> cellData.getValue().informationProperty());
         progressColumn.setCellValueFactory(cellData -> cellData.getValue().progressProperty().asObject());
         progressColumn.setCellFactory(ProgressBarTableCell.<DownloadController>forTableColumn());
+
+        // Context menu for downloads table initialization
+        showDownloadInFMMenuItem.setDisable(!Desktop.isDesktopSupported());
+        downloadsTableView.setRowFactory(callback -> {
+            final TableRow<DownloadController> row = new TableRow<>();
+            row.contextMenuProperty().bind(
+                Bindings.when(Bindings.isNotNull(row.itemProperty()))
+                        .then(downloadContextMenu)
+                        .otherwise((ContextMenu) null)
+            );
+            row.setOnContextMenuRequested((actionEvent) -> {
+                DownloadController dc = row.getItem();
+                showDownloadInFMMenuItem.setDisable(dc.getDownload().getCurrentStatus() != Download.Status.DOWNLOADED);
+            });
+            return row;
+        });
         downloadsTableView.setItems(downloads);
         urlFieldValidator.reset();
     }
@@ -80,7 +138,7 @@ public class MainController implements Observer {
             if (Platform.isFxApplicationThread())
                 updateLogic.get();
             else
-                Platform.runLater(() -> updateLogic.get());
+                Platform.runLater(updateLogic::get);
         }
     }
 

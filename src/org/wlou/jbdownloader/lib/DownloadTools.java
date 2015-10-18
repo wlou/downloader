@@ -1,7 +1,4 @@
-package org.wlou.jbdownloader;
-
-import org.wlou.jbdownloader.http.Http;
-import org.wlou.jbdownloader.http.HttpHead;
+package org.wlou.jbdownloader.lib;
 
 import javax.xml.ws.http.HTTPException;
 import java.io.IOException;
@@ -48,15 +45,15 @@ public final class DownloadTools {
      * @throws IOException
      */
     public static void prepareDownload(Download target, String headers) throws ParseException, IOException {
-        Map<String, String> parsedHeaders = HttpHead.parseResponse(headers);
+        Map<String, String> parsedHeaders = HttpTools.parseHeadResponse(headers);
 
-        int status = Integer.parseInt(parsedHeaders.get(Http.CODE_KEY));
+        int status = Integer.parseInt(parsedHeaders.get(HttpTools.CODE_KEY));
         if (status < 200 || status >= 300)
             // 2xx: Success - The action was successfully received, understood, and accepted
             throw new HTTPException(status);
 
-        int headersLength = headers.getBytes(Http.DEFAULT_CONTENT_CHARSET).length;
-        int contentLength = Integer.parseInt(parsedHeaders.get(Http.CONTENT_LENGTH_KEY));
+        int headersLength = headers.getBytes(HttpTools.DEFAULT_CONTENT_CHARSET).length;
+        int contentLength = Integer.parseInt(parsedHeaders.get(HttpTools.CONTENT_LENGTH_KEY));
 
         synchronized (target) {
             if (target.getCurrentStatus() != Download.Status.INITIALIZING)

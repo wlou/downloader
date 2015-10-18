@@ -6,8 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
-import org.wlou.jbdownloader.DownloadManager;
 import org.wlou.jbdownloader.gui.controllers.MainController;
+import org.wlou.jbdownloader.lib.DownloadManager;
 
 public class Main extends Application {
 
