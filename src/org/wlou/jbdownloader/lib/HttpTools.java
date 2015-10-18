@@ -7,6 +7,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/** The <code>HttpTools</code> provides auxiliary functions to work with Http protocol.
+ *
+ *  <p>Class contains set of frequently used constants and static
+ *  methods for handling Http requests and responses.
+ *
+ **/
 public final class HttpTools {
     public static final int CR = 13;
     public static final int LF = 10;
@@ -31,6 +37,12 @@ public final class HttpTools {
 
     public static final String DEFAULT_CONTENT_CHARSET = ISO_8859_1;
 
+    /**
+     * Prepares Http GET request from set of parameters.
+     * @param url   a <code>Url</code> target url for requesting
+     * @param params    a <code>Map<String, String></code> custom Http headers
+     * @return  <code>String</code> containing formatted Http GET request
+     */
     public static String makeGetRequest(URL url, Map<String, String> params) {
         final String METHOD_NAME = "GET";
         String protocol = url.getProtocol();
@@ -39,6 +51,12 @@ public final class HttpTools {
         return formHtpRequest(METHOD_NAME, url, params).toString();
     }
 
+    /**
+     * Prepares Http HEAD request from set of parameters.
+     * @param url   a <code>Url</code> target url for requesting
+     * @param params    a <code>Map<String, String></code> custom Http headers
+     * @return  <code>String</code> containing formatted Http HEAD request
+     */
     public static String makeHeadRequest(URL url, Map<String, String> params) {
         final String METHOD_NAME = "HEAD";
         String protocol = url.getProtocol();
@@ -66,6 +84,12 @@ public final class HttpTools {
         return request;
     }
 
+    /**
+     * Parses Http HEAD response from string to set of Key&lt-&gtValue pairs of headers.
+     * @param response  a <code>String</code> containing Http HEAD response from a server
+     * @return  parsed Http headers as Key&lt-&gtValue pairs
+     * @throws ParseException if error the response is ill-formatted
+     */
     public static Map<String, String> parseHeadResponse(String response) throws ParseException {
         assert response != null;
 
@@ -99,5 +123,4 @@ public final class HttpTools {
     private static final Pattern spaceSplitter = Pattern.compile(String.valueOf((char) HttpTools.SPACE), Pattern.LITERAL);
     private static final Pattern lineSplitter = Pattern.compile(String.valueOf((char) HttpTools.LF), Pattern.LITERAL);
     private static final Pattern kvSplitter = Pattern.compile(String.valueOf((char) HttpTools.COLON), Pattern.LITERAL);
-
 }

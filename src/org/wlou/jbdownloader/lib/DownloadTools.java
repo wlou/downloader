@@ -7,6 +7,9 @@ import java.text.ParseException;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ *
+ */
 public final class DownloadTools {
 
     public static final String INIT_ERROR_MESSAGE = "Error was occurred during initialization";
@@ -43,6 +46,7 @@ public final class DownloadTools {
      * @param headers
      * @throws ParseException
      * @throws IOException
+     * @throws HTTPException
      */
     public static void prepareDownload(Download target, String headers) throws ParseException, IOException {
         Map<String, String> parsedHeaders = HttpTools.parseHeadResponse(headers);

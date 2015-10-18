@@ -95,6 +95,9 @@ public final class AsyncTools {
         };
     }
 
+    /**
+     *
+     */
     public static class ChannelReader implements CompletionHandler<Integer, NetworkOperationContext> {
 
         /**
