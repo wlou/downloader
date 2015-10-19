@@ -6,9 +6,6 @@ import javafx.scene.control.TextInputControl;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-/**
- * Created by Artem on 18.10.2015.
- */
 public class UrlValidator extends ValidatorBase {
 
     @Override
@@ -29,6 +26,10 @@ public class UrlValidator extends ValidatorBase {
     public void reset() {
         validUrl = null;
         hasErrors.set(false);
+    }
+
+    public TextInputControl getSrcTextInputControl() {
+        return (TextInputControl) srcControl.get();
     }
 
     public URL getValidUrl() {

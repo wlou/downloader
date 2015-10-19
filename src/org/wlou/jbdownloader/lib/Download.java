@@ -167,7 +167,7 @@ public class Download extends Observable {
     public void releaseBuffers() {
         // FIXME: workaround http://bugs.java.com/view_bug.do?bug_id=4724038
         try {
-            java.lang.reflect.Method unmapMethod = FileChannel.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
+            java.lang.reflect.Method unmapMethod = sun.nio.ch.FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
             unmapMethod.setAccessible(true);
             unmapMethod.invoke(null, mainBuffer);
         } catch (Exception ignored) { }

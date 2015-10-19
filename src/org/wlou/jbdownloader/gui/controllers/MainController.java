@@ -6,12 +6,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Point2D;
 import javafx.scene.control.*;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.ProgressBarTableCell;
+import javafx.scene.layout.FlowPane;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import org.wlou.jbdownloader.gui.controls.UrlValidator;
 import org.wlou.jbdownloader.lib.Download;
@@ -49,6 +52,8 @@ public class MainController implements Observer {
     private TextField baseDirField;
     @FXML
     private UrlValidator urlFieldValidator;
+    @FXML
+    private FlowPane missedTargetPopupContent;
 
     public void setDownloadManager(DownloadManager manager) {
         this.manager = manager;
@@ -61,6 +66,7 @@ public class MainController implements Observer {
             URL url = urlFieldValidator.getValidUrl();
             Path baseDir = Paths.get(baseDirField.getText());
             manager.addDownload(url, baseDir);
+            urlFieldValidator.getSrcTextInputControl().setText("");
         }
     }
 
@@ -86,8 +92,22 @@ public class MainController implements Observer {
     public void showDownloadInFM(ActionEvent actionEvent) throws IOException {
         DownloadController dc = downloadsTableView.getSelectionModel().getSelectedItem();
         Download d = dc.getDownload();
-        if (d.getCurrentStatus() == Download.Status.DOWNLOADED)
-            Desktop.getDesktop().open(d.getWhere().getParent().toFile());
+        if (d.getCurrentStatus() == Download.Status.DOWNLOADED) {
+            if (!d.getWhere().toFile().exists()) {
+                Popup popup = new Popup();
+                popup.getContent().add(missedTargetPopupContent);
+                popup.setAutoHide(true);
+                // FIXME: make precise calculations
+                double localX = downloadsTableView.getWidth()/2 - 90;
+                double localY = downloadsTableView.getHeight()/3;
+                Point2D anchor = downloadsTableView.localToScreen(localX, localY);
+                popup.show(mainStage, anchor.getX(), anchor.getY());
+                manager.removeDownload(d);
+            }
+            else
+                Desktop.getDesktop().open(d.getWhere().getParent().toFile());
+        }
+
     }
 
     public void removeDownload(ActionEvent actionEvent) {
