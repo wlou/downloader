@@ -31,8 +31,6 @@ public final class HttpTools {
     public static final String CONNECTION_CLOSE = "Close";
     public static final String CONNECTION_KEEP_ALIVE = "Keep-Alive";
 
-    public static final String UTF_8 = "UTF-8";
-    public static final String ASCII = "ASCII";
     public static final String ISO_8859_1 = "ISO-8859-1";
 
     public static final String DEFAULT_CONTENT_CHARSET = ISO_8859_1;

@@ -80,7 +80,7 @@ public class Download extends Observable {
         String baseName = this.what.getFile();
         Path name = Paths.get(baseName).getFileName();
         Path where = Paths.get(base.toString(), name.toString());
-        // FIXME: make thread safe & restrict counter
+        // FIXME: make thread safe: some another download of the same resource can rival for the same base directory
         for (int i = 1; where.toFile().exists(); ++i) {
             name = Paths.get(String.format("%s.%d", baseName, i)).getFileName();
             where = Paths.get(base.toString(), name.toString());

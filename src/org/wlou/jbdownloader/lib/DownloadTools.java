@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- *
+ * Collection of static method to make downloading more convenient and testable.
  */
 public final class DownloadTools {
 
@@ -20,17 +20,29 @@ public final class DownloadTools {
 
     private DownloadTools() {}
 
+    /**
+     * Wraps {@link Download} to as sequence of output buffers
+     */
     public static class DownloadOutputBuffersIterator implements Iterator<ByteBuffer> {
 
+        /**
+         * @param source The download to wrap.
+         */
         public DownloadOutputBuffersIterator(Download source) {
             this.source = source;
         }
 
+        /**
+         * @return Always true, to determine the end of the buffers check items for null
+         */
         @Override
         public boolean hasNext() {
             return true;
         }
 
+        /**
+         * @return Next buffer to receive part of resource from the network
+         */
         @Override
         public ByteBuffer next() {
             synchronized (source) {
@@ -42,11 +54,13 @@ public final class DownloadTools {
     }
 
     /**
-     * @param target
-     * @param headers
-     * @throws ParseException
-     * @throws IOException
-     * @throws HTTPException
+     * Performs basic checks.
+     * Sets up all required download parameters.
+     * @param target The download to prepare.
+     * @param headers String representation of the Http HEAD response.
+     * @throws ParseException when {@link HttpTools#parseHeadResponse(String)} throws
+     * @throws IOException when {@link Download#prepareOutput(int, int)} throws
+     * @throws HTTPException when Http status code is not in [200; 300)
      */
     public static void prepareDownload(Download target, String headers) throws ParseException, IOException {
         Map<String, String> parsedHeaders = HttpTools.parseHeadResponse(headers);
