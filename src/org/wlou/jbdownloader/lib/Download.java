@@ -3,6 +3,7 @@ package org.wlou.jbdownloader.lib;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -77,7 +78,7 @@ public class Download extends Observable {
      */
     public Download(URL what, Path base) {
         this.what = what;
-        String baseName = this.what.getFile();
+        String baseName = this.what.getFile().replaceAll(DownloadTools.RESERVED, "_");
         Path name = Paths.get(baseName).getFileName();
         Path where = Paths.get(base.toString(), name.toString());
         // FIXME: make thread safe: some another download of the same resource can rival for the same base directory
@@ -114,17 +115,18 @@ public class Download extends Observable {
     }
 
     /**
-     * Gets current downloading status
-     * @return {@link org.wlou.jbdownloader.lib.Download.Status} of the download
+     * Gets current downloading status.
+     * @return {@link org.wlou.jbdownloader.lib.Download.Status} of the download.
      */
     public Status getCurrentStatus() {
         return currentStatus;
     }
 
     /**
-     * Sets current downloading status
-     * @param status new {@link org.wlou.jbdownloader.lib.Download.Status} of the download
-     * @param information textual representation of the <code>status</code>
+     * Sets current downloading status.
+     * Notifies observers about the change.
+     * @param status New {@link org.wlou.jbdownloader.lib.Download.Status} of the download.
+     * @param information Textual representation of the <code>status</code>.
      */
     public void setCurrentStatus(Download.Status status, String information) {
         this.currentStatus = status;
@@ -137,8 +139,8 @@ public class Download extends Observable {
      * Creates target file for the downloading resource.
      * Maps the file content to the memory.
      * Creates queue of buffers for the memory.
-     * @param skip a number of bytes to skip before start writing to target memory.
-     *             It is useful for skipping http headers and write only content.
+     * @param skip The number of bytes to skip before start writing to the target memory.
+     *             It is useful for skipping http headers and writing only content.
      * @param payload a number of bytes in resource content (Content-Length http parameter)
      * @throws IOException when
      *  {@link RandomAccessFile#RandomAccessFile(File, String)} or
@@ -167,7 +169,7 @@ public class Download extends Observable {
     public void releaseBuffers() {
         // FIXME: workaround http://bugs.java.com/view_bug.do?bug_id=4724038
         try {
-            java.lang.reflect.Method unmapMethod = sun.nio.ch.FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
+            Method unmapMethod = sun.nio.ch.FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
             unmapMethod.setAccessible(true);
             unmapMethod.invoke(null, mainBuffer);
         } catch (Exception ignored) { }

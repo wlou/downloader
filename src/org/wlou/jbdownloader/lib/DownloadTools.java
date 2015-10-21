@@ -18,6 +18,8 @@ public final class DownloadTools {
     public static final String SUCCESSFUL_INITIALIZED_MESSAGE = "Processing download";
     public static final String SUCCESSFUL_COMPLETED_MESSAGE = "Download is successfully completed";
 
+    public static final String RESERVED = "[<>\\:\"/\\\\|\\?\\*]";
+
     private DownloadTools() {}
 
     /**

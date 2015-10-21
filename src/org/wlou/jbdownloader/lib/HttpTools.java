@@ -3,8 +3,8 @@ package org.wlou.jbdownloader.lib;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 /** The <code>HttpTools</code> provides auxiliary functions to work with Http protocol.
@@ -65,7 +65,7 @@ public final class HttpTools {
 
     private static StringBuilder formHtpRequest(String METHOD, URL url, Map<String, String> params) {
         StringBuilder request = new StringBuilder();
-        request.append(String.format("%s %s %s", METHOD, url.getPath(), HttpTools.DEFAULT_VERION));
+        request.append(String.format("%s %s %s", METHOD, url.toString(), HttpTools.DEFAULT_VERION));
         request.append((char) HttpTools.CR);
         request.append((char) HttpTools.LF);
         request.append(String.format("%s: %s", HttpTools.TARGET_HOST, url.getAuthority()));
@@ -98,7 +98,7 @@ public final class HttpTools {
         if (status.length < 3) // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
             throw new ParseException(String.format("Can't parse status line: \"%s\"", headers[0].trim()), parsePos);
 
-        Map<String, String> result = new HashMap<>();
+        Map<String, String> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         result.put(HttpTools.CODE_KEY, status[1]);
 
         for (int i = 1; i < headers.length; ++i) {

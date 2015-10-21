@@ -105,7 +105,7 @@ public class MainController implements Observer {
                 manager.removeDownload(d);
             }
             else
-                Desktop.getDesktop().open(d.getWhere().getParent().toFile());
+                Desktop.getDesktop().browse(d.getWhere().getParent().toUri());
         }
 
     }
