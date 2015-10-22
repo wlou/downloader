@@ -22,7 +22,6 @@ import org.wlou.jbdownloader.lib.DownloadManager;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -89,7 +88,7 @@ public class MainController implements Observer {
         manager.setParallelCapacity(Integer.parseInt(current.getId()));
     }
 
-    public void showDownloadInFM(ActionEvent actionEvent) throws IOException {
+    public void showDownloadInFM(ActionEvent actionEvent) {
         DownloadController dc = downloadsTableView.getSelectionModel().getSelectedItem();
         Download d = dc.getDownload();
         if (d.getCurrentStatus() == Download.Status.DOWNLOADED) {
@@ -104,8 +103,15 @@ public class MainController implements Observer {
                 popup.show(mainStage, anchor.getX(), anchor.getY());
                 manager.removeDownload(d);
             }
-            else
-                Desktop.getDesktop().browse(d.getWhere().getParent().toUri());
+            else {
+                new Thread(
+                    () -> {
+                        try {
+                            Desktop.getDesktop().browse(d.getWhere().getParent().toUri());
+                        } catch (Exception ignored) {}
+                    }
+                ).start();
+            }
         }
 
     }
