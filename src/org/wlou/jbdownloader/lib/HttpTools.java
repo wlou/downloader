@@ -1,5 +1,6 @@
 package org.wlou.jbdownloader.lib;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -51,15 +52,16 @@ public final class HttpTools {
 
     /**
      * Prepares Http HEAD request from set of parameters.
-     * @param url   a <code>Url</code> target url for requesting
-     * @param params    a <code>Map<String, String></code> custom Http headers
+     * @param url a <code>Url</code> target url for requesting
+     * @param params a <code>Map<String, String></code> custom Http headers
      * @return  <code>String</code> containing formatted Http HEAD request
+     * @throws MalformedURLException when the protocol of the <code>url</code> is unsupported (not http)
      */
-    public static String makeHeadRequest(URL url, Map<String, String> params) {
+    public static String makeHeadRequest(URL url, Map<String, String> params) throws MalformedURLException {
         final String METHOD_NAME = "HEAD";
         String protocol = url.getProtocol();
         if (!protocol.equals("http")) // TODO:
-            throw new UnsupportedOperationException("Only http protocol is supported");
+            throw new MalformedURLException("Only http protocol is supported");
         return formHtpRequest(METHOD_NAME, url, params).toString();
     }
 

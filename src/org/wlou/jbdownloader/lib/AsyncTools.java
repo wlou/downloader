@@ -42,13 +42,12 @@ public final class AsyncTools {
          * @param requestBytes Buffer of request (http request for example).
          * @param responseBytes Buffer for keeping response.
          */
-        public NetworkOperationContext(String type, int id, AsynchronousSocketChannel channel,
+        public NetworkOperationContext(String opInfo, AsynchronousSocketChannel channel,
                                        ByteBuffer requestBytes, ByteBuffer responseBytes) {
             Channel = channel;
             RequestBytes = requestBytes;
             ResponseBytes = responseBytes;
-            OperationType = type;
-            TargetId = id;
+            OperationInfo = opInfo;
         }
 
         /**
@@ -66,11 +65,7 @@ public final class AsyncTools {
         /**
          * Additional info for logging purposes
          */
-        public final String OperationType;
-        /**
-         * Similar to OpType additional information to track target object
-         */
-        public final int TargetId;
+        public final String OperationInfo;
 
         /**
          * Closes associated {@link #Channel}
@@ -82,10 +77,6 @@ public final class AsyncTools {
             }
             catch (IOException ignored) {}
         }
-    }
-
-    public static String getOpInfo(NetworkOperationContext ctx) {
-        return String.format("[%s:%x]", ctx.OperationType, ctx.TargetId);
     }
 
     /**
@@ -149,23 +140,20 @@ public final class AsyncTools {
         @Override
         public void completed(Integer read, NetworkOperationContext ctx) {
             try {
-                log.debug(String.format("%s Response portion has been received (%d bytes)", getOpInfo(ctx), read));
+                log.debug(String.format("%s Response portion has been received (%d bytes)", ctx.OperationInfo, read));
                 if (proceedReading != null && !proceedReading.get()) {
-                    log.info(String.format("%s Reader has been interrupted", getOpInfo(ctx)));
+                    log.info(String.format("%s Reader has been interrupted", ctx.OperationInfo));
                     runCompletionHandler(read, ctx);
                     return;
                 }
-                if (!ctx.ResponseBytes.hasRemaining()) {
-                    ctx = new NetworkOperationContext(
-                        ctx.OperationType, ctx.TargetId,
-                        ctx.Channel, ctx.RequestBytes, buffers.next());
-                }
+                if (!ctx.ResponseBytes.hasRemaining())
+                    ctx = new NetworkOperationContext(ctx.OperationInfo, ctx.Channel, ctx.RequestBytes, buffers.next());
                 if (read == -1 || ctx.ResponseBytes == null) {
-                    log.info(String.format("%s Completing reader cleanly", getOpInfo(ctx)));
+                    log.info(String.format("%s Completing reader cleanly", ctx.OperationInfo));
                     runCompletionHandler(read, ctx);
                     return;
                 }
-                log.debug(String.format("%s Continue reading response", getOpInfo(ctx)));
+                log.debug(String.format("%s Continue reading response", ctx.OperationInfo));
                 ctx.Channel.read(ctx.ResponseBytes, ctx, this);
             }
             catch (Exception e) {
@@ -226,18 +214,18 @@ public final class AsyncTools {
         @Override
         public void completed(Integer written, NetworkOperationContext ctx) {
             try {
-                log.debug(String.format("%s Request portion has been written (%d bytes)", getOpInfo(ctx), written));
+                log.debug(String.format("%s Request portion has been written (%d bytes)", ctx.OperationInfo, written));
                 if (proceedWriting != null && !proceedWriting.get()) {
-                    log.info(String.format("%s Writer has been interrupted", getOpInfo(ctx)));
+                    log.info(String.format("%s Writer has been interrupted", ctx.OperationInfo));
                     runCompletionHandler(written, ctx);
                     return;
                 }
                 if (written == 0 || ctx.RequestBytes == null) {
-                    log.info(String.format("%s Completing writer cleanly", getOpInfo(ctx)));
+                    log.info(String.format("%s Completing writer cleanly", ctx.OperationInfo));
                     runCompletionHandler(written, ctx);
                     return;
                 }
-                log.debug(String.format("%s Continue writing response", getOpInfo(ctx)));
+                log.debug(String.format("%s Continue writing response", ctx.OperationInfo));
                 ctx.Channel.write(ctx.RequestBytes, ctx, this);
             }
             catch (Exception e) {
