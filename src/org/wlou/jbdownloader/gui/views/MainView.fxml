@@ -20,6 +20,18 @@
                                 <CheckMenuItem id="8" onAction="#setThreads" mnemonicParsing="false" text="8 threads" />
                             </items>
                         </Menu>
+                        <Menu fx:id="loggerMenu" mnemonicParsing="false" text="Logger">
+                            <items>
+                                <Menu fx:id="loggerLevelMenu" mnemonicParsing="false" text="Level">
+                                    <items>
+                                        <CheckMenuItem id="1" onAction="#setLogLevel" mnemonicParsing="false" selected="true" text="INFO" />
+                                        <CheckMenuItem id="2" onAction="#setLogLevel" mnemonicParsing="false" text="DEBUG" />
+                                    </items>
+                                </Menu>
+                                <MenuItem onAction="#showLogLocation" text="Show Log Location" />
+                                <MenuItem onAction="#openLog" text="Open Log" />
+                            </items>
+                        </Menu>
                     </menus>
                 </MenuBar>
             </children>

@@ -16,6 +16,10 @@ import javafx.scene.layout.FlowPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.wlou.jbdownloader.gui.controls.UrlValidator;
 import org.wlou.jbdownloader.lib.Download;
 import org.wlou.jbdownloader.lib.DownloadManager;
@@ -33,6 +37,8 @@ public class MainController implements Observer {
 
     @FXML
     private Menu parametersMenu;
+    @FXML
+    private Menu loggerLevelMenu;
     @FXML
     private ContextMenu downloadContextMenu;
     @FXML
@@ -86,6 +92,47 @@ public class MainController implements Observer {
                 checkItem.setSelected(false);
         }
         manager.setParallelCapacity(Integer.parseInt(current.getId()));
+        current.setSelected(true);
+    }
+
+    public void showLogLocation(ActionEvent actionEvent) {
+        Logger logger = LogManager.getRootLogger();
+        FileAppender appender = (FileAppender)logger.getAppender("FILE");
+        final String path = appender.getFile();
+        new Thread(
+                () -> {
+                    try {
+                        Desktop.getDesktop().browse(Paths.get(path).toAbsolutePath().getParent().normalize().toUri());
+                    } catch (Exception ignored) {}
+                }
+        ).start();
+    }
+
+    public void openLog(ActionEvent actionEvent) {
+        Logger logger = LogManager.getRootLogger();
+        FileAppender appender = (FileAppender)logger.getAppender("FILE");
+        final String path = appender.getFile();
+        new Thread(
+                () -> {
+                    try {
+                        Desktop.getDesktop().browse(Paths.get(path).toAbsolutePath().normalize().toUri());
+                    } catch (Exception ignored) {}
+                }
+        ).start();
+    }
+
+    public void setLogLevel(ActionEvent actionEvent) {
+        CheckMenuItem current = (CheckMenuItem)actionEvent.getSource();
+        for (MenuItem item: loggerLevelMenu.getItems()) {
+            CheckMenuItem checkItem = (CheckMenuItem)item;
+            if (!checkItem.equals(current))
+                checkItem.setSelected(false);
+        }
+        int level = Integer.parseInt(current.getId());
+        if (level == 1)
+            LogManager.getRootLogger().setLevel(Level.INFO);
+        if (level == 2)
+            LogManager.getRootLogger().setLevel(Level.DEBUG);
     }
 
     public void showDownloadInFM(ActionEvent actionEvent) {

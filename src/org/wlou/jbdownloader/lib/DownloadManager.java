@@ -21,7 +21,8 @@ public class DownloadManager extends Observable implements AutoCloseable {
     public DownloadManager() throws IOException {
         downloads = new LinkedList<>();
         executors = new ThreadPoolExecutor(parallelCapacity, parallelCapacity, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-        dispatcher = new Thread(new Downloader(downloads, executors));
+        Downloader downloader = new Downloader(downloads, executors);
+        dispatcher = new Thread(downloader, String.format("Downloader-%02X", downloader.hashCode()));
         dispatcher.start();
     }
 
@@ -36,7 +37,7 @@ public class DownloadManager extends Observable implements AutoCloseable {
         synchronized (downloads) {
             download = new Download(url, base);
             downloads.add(download);
-            downloads.notify();
+            downloads.notifyAll();
         }
         setChanged();
         notifyObservers();
@@ -50,6 +51,7 @@ public class DownloadManager extends Observable implements AutoCloseable {
     public void removeDownload(Download download) {
         synchronized (download) {
             download.setCurrentStatus(Download.Status.GHOST, null);
+            download.notifyAll();
         }
         synchronized (downloads) {
             downloads.remove(download);

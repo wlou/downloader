@@ -71,7 +71,7 @@ public final class HttpTools {
         request.append(String.format("%s: %s", HttpTools.TARGET_HOST, url.getAuthority()));
         request.append((char) HttpTools.CR);
         request.append((char) HttpTools.LF);
-        String connDirectiveValue = HttpTools.CONNECTION_CLOSE;
+        String connDirectiveValue = HttpTools.CONNECTION_KEEP_ALIVE;
         if (params != null && params.containsKey(HttpTools.CONNECTION_DIRECTIVE))
             connDirectiveValue = params.get(HttpTools.CONNECTION_DIRECTIVE);
         request.append(String.format("%s: %s", HttpTools.CONNECTION_DIRECTIVE, connDirectiveValue));

@@ -186,7 +186,7 @@ public class Download extends Observable {
     /**
      * Reports te downloading progress to the registered {@link java.util.Observer} objects
      */
-    public void updateProgress() {
+    public void invalidateProgress() {
         setChanged();
         notifyObservers();
     }

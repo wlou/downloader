@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Collection of static method to make downloading more convenient and testable.
@@ -74,13 +75,46 @@ public final class DownloadTools {
 
         int headersLength = headers.getBytes(HttpTools.DEFAULT_CONTENT_CHARSET).length;
         int contentLength = Integer.parseInt(parsedHeaders.get(HttpTools.CONTENT_LENGTH_KEY));
+        target.prepareOutput(headersLength, contentLength);
+    }
 
-        synchronized (target) {
-            if (target.getCurrentStatus() != Download.Status.INITIALIZING)
-                return;
-            target.prepareOutput(headersLength, contentLength);
-            target.setCurrentStatus(Download.Status.INITIALIZED, SUCCESSFUL_INITIALIZED_MESSAGE);
-            target.notify();
+    /**
+     * Checks whether the download is under processing.
+     * @param download The download to check.
+     * @return True if the status of the <code>download</code> allows next processing step
+     */
+    public static boolean isActiveDownload(Download download) {
+        Download.Status status = download.getCurrentStatus();
+        switch (status) {
+            case NEW:
+            case INITIALIZING:
+            case INITIALIZED:
+            case DOWNLOADING:
+                return true;
         }
+        return false;
+    }
+
+    /**
+     * Auxiliary method for updating progress of the download and checking the status.
+     * @param download The download to check.
+     * @return True if the status of the <code>download</code> allows next operation.
+     */
+    public static boolean canProceedProcessing(Download download) {
+        download.invalidateProgress();
+        return download.getCurrentStatus() == Download.Status.DOWNLOADING;
+    }
+
+    /**
+     * Auxiliary method for checking download status allows proceed initilization.
+     * @param download The download to check.
+     * @return True if the status of the <code>download</code> allows next operation.
+     */
+    public static boolean canProceedInitialization(Download download) {
+        return download.getCurrentStatus() == Download.Status.INITIALIZING;
+    }
+
+    public static int hash(Download download) {
+        return Objects.hash(download.getWhat().toString(), download.getWhere().toString());
     }
 }
