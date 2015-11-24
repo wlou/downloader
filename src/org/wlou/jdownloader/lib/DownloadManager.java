@@ -1,11 +1,10 @@
-package org.wlou.jbdownloader.lib;
+package org.wlou.jdownloader.lib;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Observable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -19,9 +18,9 @@ import java.util.concurrent.TimeUnit;
 public class DownloadManager extends Observable implements AutoCloseable {
 
     public DownloadManager() throws IOException {
-        downloads = new LinkedList<>();
+        downloads = new ConcurrentLinkedQueue<>();
         executors = new ThreadPoolExecutor(parallelCapacity, parallelCapacity, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-        Downloader downloader = new Downloader(downloads, executors);
+        downloader = new Downloader(downloads, executors);
         dispatcher = new Thread(downloader, String.format("Downloader-%02X", downloader.hashCode()));
         dispatcher.start();
     }
@@ -33,12 +32,9 @@ public class DownloadManager extends Observable implements AutoCloseable {
      * @return {@link Download} object representing the download in the library.
      */
     public Download addDownload(URL url, Path base) {
-        Download download;
-        synchronized (downloads) {
-            download = new Download(url, base);
-            downloads.add(download);
-            downloads.notifyAll();
-        }
+        Download download = new Download(url, base);
+        downloads.add(download);
+        downloader.checkForNewTasks();
         setChanged();
         notifyObservers();
         return download;
@@ -49,24 +45,19 @@ public class DownloadManager extends Observable implements AutoCloseable {
      * @param download The download to remove
      */
     public void removeDownload(Download download) {
-        synchronized (download) {
-            download.setCurrentStatus(Download.Status.GHOST, null);
-            download.notifyAll();
-        }
-        synchronized (downloads) {
-            downloads.remove(download);
-            downloads.notifyAll();
-        }
+        download.turnToGhost();
+        downloads.remove(download);
         setChanged();
         notifyObservers();
+
     }
 
     /**
      * Download queue accessor.
      * @return Current manager's queue of downloads.
      */
-    public List<Download> getDownloads() {
-        return downloads;
+    public Download[] getDownloadsSnap() {
+        return downloads.toArray(new Download[downloads.size()]);
     }
 
     /**
@@ -92,8 +83,9 @@ public class DownloadManager extends Observable implements AutoCloseable {
     }
 
     private final Thread dispatcher;
+    private final Downloader downloader;
     private final ThreadPoolExecutor executors;
-    private final List<Download> downloads;
+    private final ConcurrentLinkedQueue<Download> downloads;
 
     int parallelCapacity = 2;
 }

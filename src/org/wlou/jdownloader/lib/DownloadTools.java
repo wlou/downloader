@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader.lib;
+package org.wlou.jdownloader.lib;
 
 import javax.xml.ws.http.HTTPException;
 import java.io.IOException;
@@ -48,9 +48,7 @@ public final class DownloadTools {
          */
         @Override
         public ByteBuffer next() {
-            synchronized (source) {
-                return source.nextOutputBuffer();
-            }
+            return source.nextOutputBuffer();
         }
 
         private final Download source;
@@ -59,13 +57,14 @@ public final class DownloadTools {
     /**
      * Performs basic checks.
      * Sets up all required download parameters.
-     * @param target The download to prepare.
      * @param headers String representation of the Http HEAD response.
      * @throws ParseException when {@link HttpTools#parseHeadResponse(String)} throws
      * @throws IOException when {@link Download#prepareOutput(int, int)} throws
      * @throws HTTPException when Http status code is not in [200; 300)
      */
-    public static void prepareDownload(Download target, String headers) throws ParseException, IOException {
+    public static int parseContentLength(String headers) throws ParseException, IOException {
+        assert headers != null;
+
         Map<String, String> parsedHeaders = HttpTools.parseHeadResponse(headers);
 
         int status = Integer.parseInt(parsedHeaders.get(HttpTools.CODE_KEY));
@@ -73,9 +72,7 @@ public final class DownloadTools {
             // 2xx: Success - The action was successfully received, understood, and accepted
             throw new HTTPException(status);
 
-        int headersLength = headers.getBytes(HttpTools.DEFAULT_CONTENT_CHARSET).length;
-        int contentLength = Integer.parseInt(parsedHeaders.get(HttpTools.CONTENT_LENGTH_KEY));
-        target.prepareOutput(headersLength, contentLength);
+        return Integer.parseInt(parsedHeaders.get(HttpTools.CONTENT_LENGTH_KEY));
     }
 
     /**

@@ -1,7 +1,7 @@
-package org.wlou.jbdownloader.lib.test;
+package org.wlou.jdownloader.lib.test;
 
 import junit.framework.TestCase;
-import org.wlou.jbdownloader.lib.HttpTools;
+import org.wlou.jdownloader.lib.HttpTools;
 
 import java.util.Map;
 
@@ -16,11 +16,11 @@ public class HttpToolsTest extends TestCase {
 
 
     public void testMakeGetRequest() throws Exception {
-        //TODO: missed, because of demo project
+        //TODO:
     }
 
     public void testMakeHeadRequest() throws Exception {
-        //TODO: missed, because of demo project
+        //TODO:
     }
 
     public void testParseHeadResponse() throws Exception {

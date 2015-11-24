@@ -1,14 +1,14 @@
-package org.wlou.jbdownloader.lib.test;
+package org.wlou.jdownloader.lib.test;
 
 import junit.framework.TestCase;
 
 public class ChannelReaderTest extends TestCase {
 
     public void testCompleted() throws Exception {
-        //TODO: missed, because of demo project
+        //TODO:
     }
 
     public void testFailed() throws Exception {
-        //TODO: missed, because of demo project
+        //TODO:
     }
 }

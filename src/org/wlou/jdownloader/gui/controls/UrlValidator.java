@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader.gui.controls;
+package org.wlou.jdownloader.gui.controls;
 
 import com.pixelduke.javafx.validation.ValidatorBase;
 import javafx.scene.control.TextInputControl;

@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader.gui;
+package org.wlou.jdownloader.gui;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -6,8 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
-import org.wlou.jbdownloader.gui.controllers.MainController;
-import org.wlou.jbdownloader.lib.DownloadManager;
+import org.wlou.jdownloader.gui.controllers.MainController;
+import org.wlou.jdownloader.lib.DownloadManager;
 
 public class Main extends Application {
 

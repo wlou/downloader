@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader.gui.controllers;
+package org.wlou.jdownloader.gui.controllers;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -20,9 +20,9 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.wlou.jbdownloader.gui.controls.UrlValidator;
-import org.wlou.jbdownloader.lib.Download;
-import org.wlou.jbdownloader.lib.DownloadManager;
+import org.wlou.jdownloader.gui.controls.UrlValidator;
+import org.wlou.jdownloader.lib.Download;
+import org.wlou.jdownloader.lib.DownloadManager;
 
 import java.awt.*;
 import java.io.File;
@@ -128,11 +128,7 @@ public class MainController implements Observer {
             if (!checkItem.equals(current))
                 checkItem.setSelected(false);
         }
-        int level = Integer.parseInt(current.getId());
-        if (level == 1)
-            LogManager.getRootLogger().setLevel(Level.INFO);
-        if (level == 2)
-            LogManager.getRootLogger().setLevel(Level.DEBUG);
+        LogManager.getRootLogger().setLevel(Level.toLevel(current.getId()));
     }
 
     public void showDownloadInFM(ActionEvent actionEvent) {
@@ -195,6 +191,12 @@ public class MainController implements Observer {
         });
         downloadsTableView.setItems(downloads);
         urlFieldValidator.reset();
+
+        Level logLevel = LogManager.getRootLogger().getLevel();
+        for (MenuItem item: loggerLevelMenu.getItems()) {
+            CheckMenuItem checkItem = (CheckMenuItem)item;
+            checkItem.setSelected(checkItem.getId().equals(logLevel.toString()));
+        }
     }
 
     public void setMainStage(Stage mainStage) { this.mainStage = mainStage; }
@@ -203,7 +205,7 @@ public class MainController implements Observer {
     public void update(Observable o, Object arg) {
         Supplier<Void> updateLogic = () -> {
             downloads.clear();
-            for (Download d : manager.getDownloads())
+            for (Download d : manager.getDownloadsSnap())
                 downloads.add(new DownloadController(d));
             return null;
         };

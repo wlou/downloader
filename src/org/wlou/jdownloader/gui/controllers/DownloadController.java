@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader.gui.controllers;
+package org.wlou.jdownloader.gui.controllers;
 
 
 import javafx.application.Platform;
@@ -6,7 +6,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.wlou.jbdownloader.lib.Download;
+import org.wlou.jdownloader.lib.Download;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -52,7 +52,7 @@ public class DownloadController implements Observer {
             if (Platform.isFxApplicationThread())
                 updateLogic.get();
             else
-                Platform.runLater(() -> updateLogic.get());
+                Platform.runLater(updateLogic::get);
         }
     }
 

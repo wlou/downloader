@@ -4,9 +4,9 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.wlou.jbdownloader.gui.controls.UrlValidator?>
+<?import org.wlou.jdownloader.gui.controls.UrlValidator?>
 <VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="org.wlou.jbdownloader.gui.controllers.MainController">
+      fx:controller="org.wlou.jdownloader.gui.controllers.MainController">
     <children>
         <AnchorPane VBox.vgrow="NEVER">
             <children>
@@ -24,8 +24,8 @@
                             <items>
                                 <Menu fx:id="loggerLevelMenu" mnemonicParsing="false" text="Level">
                                     <items>
-                                        <CheckMenuItem id="1" onAction="#setLogLevel" mnemonicParsing="false" selected="true" text="INFO" />
-                                        <CheckMenuItem id="2" onAction="#setLogLevel" mnemonicParsing="false" text="DEBUG" />
+                                        <CheckMenuItem id="INFO" onAction="#setLogLevel" mnemonicParsing="false" selected="true" text="INFO" />
+                                        <CheckMenuItem id="DEBUG" onAction="#setLogLevel" mnemonicParsing="false" text="DEBUG" />
                                     </items>
                                 </Menu>
                                 <MenuItem onAction="#showLogLocation" text="Show Log Location" />

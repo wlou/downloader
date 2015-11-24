@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader.lib;
+package org.wlou.jdownloader.lib;
 
 import java.net.MalformedURLException;
 import java.net.URL;

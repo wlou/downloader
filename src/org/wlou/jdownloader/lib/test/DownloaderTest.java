@@ -1,16 +1,16 @@
-package org.wlou.jbdownloader.lib.test;
+package org.wlou.jdownloader.lib.test;
 
 import junit.framework.TestCase;
-import org.wlou.jbdownloader.lib.Download;
-import org.wlou.jbdownloader.lib.DownloadTools;
-import org.wlou.jbdownloader.lib.Downloader;
+import org.wlou.jdownloader.lib.Download;
+import org.wlou.jdownloader.lib.DownloadTools;
+import org.wlou.jdownloader.lib.Downloader;
+import org.wlou.jdownloader.lib.HttpTools;
 
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,6 +22,14 @@ public class DownloaderTest extends TestCase {
     public static final String _1K_ZEROS_URL = "http://localhost:8080/JBDownloaderTest?q=1k_bytes_0";
     public static final String _10K_ONES_URL = "http://localhost:8080/JBDownloaderTest?q=100k_bytes_1";
     public static final String _404_URL = "http://localhost:8080/JBDownloaderTest?q=404";
+
+    public static final String initResponse =
+        "HTTP/1.1 200 OK\r\n" +
+        "Server: test_stub\r\n" +
+        "Date: DAY, dd MON YEAR hh:mm:ss GMT\r\n" +
+        "Content-type: application/octet-stream\r\n" +
+        "Content-length: 1024\r\n" +
+        "\r\n";
 
     private static  HttpServerStub testServer;
 
@@ -36,7 +44,7 @@ public class DownloaderTest extends TestCase {
     }
 
     public void testInitialize() throws Exception {
-        LinkedList<Download> testQueue = new LinkedList<>();
+        ConcurrentLinkedQueue<Download> testQueue = new ConcurrentLinkedQueue<>();
         ExecutorService pool = Executors.newFixedThreadPool(1);
         Path defaultBasePath = Paths.get(".").toAbsolutePath().normalize();
 
@@ -46,14 +54,14 @@ public class DownloaderTest extends TestCase {
             // let's test 404 response
             Download d = new Download(new URL(_404_URL), defaultBasePath);
             try {
-                downloader.initialize(d);
+                downloader.initialize(new Downloader.DownloaderContext(d, "initialize"));
                 for (int i = 0; d.getCurrentStatus() == Download.Status.INITIALIZING && i < 3; ++i)
                     synchronized (d) { d.wait(500); }
                 assertTrue(d.getCurrentStatus() == Download.Status.ERROR);
                 assertEquals(d.getInformation(), DownloadTools.INIT_ERROR_MESSAGE);
                 assertFalse(d.getWhere().toFile().exists());
             } finally {
-                d.releaseBuffers();
+                d.turnToGhost();
                 Files.deleteIfExists(d.getWhere());
             }
 
@@ -61,14 +69,14 @@ public class DownloaderTest extends TestCase {
             d = new Download(new URL(_1K_ZEROS_URL), defaultBasePath);
             try {
 
-                downloader.initialize(d);
+                downloader.initialize(new Downloader.DownloaderContext(d, "initialize"));
                 for (int i = 0; d.getCurrentStatus() == Download.Status.INITIALIZING && i < 3; ++i)
                     synchronized (d) { d.wait(500); }
                 assertTrue(d.getCurrentStatus() == Download.Status.INITIALIZED);
                 assertEquals(d.getInformation(), DownloadTools.SUCCESSFUL_INITIALIZED_MESSAGE);
                 assertTrue(d.getWhere().toFile().exists());
             } finally {
-                d.releaseBuffers();
+                d.turnToGhost();
                 Files.deleteIfExists(d.getWhere());
             }
         } finally {
@@ -76,11 +84,10 @@ public class DownloaderTest extends TestCase {
         }
 
         // TODO: add more test cases with various server responses with critical parameters to test stability and etc...
-        // two above cases are enough because it's just a test work
     }
 
     public void testProcess() throws Exception {
-        LinkedList<Download> testQueue = new LinkedList<>();
+        ConcurrentLinkedQueue<Download> testQueue = new ConcurrentLinkedQueue<>();
         ExecutorService pool = Executors.newFixedThreadPool(1);
         Path defaultBasePath = Paths.get(".").toAbsolutePath().normalize();
 
@@ -89,10 +96,10 @@ public class DownloaderTest extends TestCase {
 
             // let's test regular case
             Download d = new Download(new URL(_1K_ZEROS_URL), defaultBasePath);
-            d.prepareOutput(137, 1024); // 137 bytes is the length of the header from stub server
-            d.setCurrentStatus(Download.Status.INITIALIZED, "test");
+            d.lockForInitialization();
+            d.completeInitialization(initResponse, HttpTools.DEFAULT_CONTENT_CHARSET);
             try {
-                downloader.process(d);
+                downloader.process(new Downloader.DownloaderContext(d, "process"));
                 for (int i = 0; d.getCurrentStatus() == Download.Status.DOWNLOADING && i < 3; ++i)
                     synchronized (d) { d.wait(500); }
                 assertTrue(d.getCurrentStatus() == Download.Status.DOWNLOADED);
@@ -100,7 +107,7 @@ public class DownloaderTest extends TestCase {
                 assertTrue(d.getWhere().toFile().exists());
                 assertTrue(Arrays.equals(Files.readAllBytes(d.getWhere()), HttpHandlerStub._1K_ZEROS));
             } finally {
-                d.releaseBuffers();
+                d.turnToGhost();
                 Files.deleteIfExists(d.getWhere());
             }
         } finally {
@@ -108,11 +115,10 @@ public class DownloaderTest extends TestCase {
         }
 
         // TODO: add more test cases, for example interrupt and etc..
-        // this is enough because it's just a test work
     }
 
     public void testRun() throws Exception {
-        LinkedList<Download> testQueue = new LinkedList<>();
+        ConcurrentLinkedQueue<Download> testQueue = new ConcurrentLinkedQueue<>();
         ExecutorService pool = Executors.newFixedThreadPool(1);
         Path defaultBasePath = Paths.get(".").toAbsolutePath().normalize();
         Downloader downloader = new Downloader(testQueue, pool);
@@ -171,13 +177,14 @@ public class DownloaderTest extends TestCase {
                     break;
                 }
             }
-            assertTrue(Arrays.equals(Files.readAllBytes(large.getWhere()), HttpHandlerStub._100K_ONES));
             assertTrue(Arrays.equals(Files.readAllBytes(small.getWhere()), HttpHandlerStub._1K_ZEROS));
-        } finally {
+            assertTrue(Arrays.equals(Files.readAllBytes(large.getWhere()), HttpHandlerStub._100K_ONES));
+        }
+        finally {
             pool.shutdown();
             worker.interrupt();
             for (Download d: testQueue) {
-                d.releaseBuffers();
+                d.turnToGhost();
                 Files.deleteIfExists(d.getWhere());
             }
         }

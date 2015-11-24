@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/JBDownloader.iml" filepath="$PROJECT_DIR$/JBDownloader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JDownloader.iml" filepath="$PROJECT_DIR$/JDownloader.iml" />
     </modules>
   </component>
 </project>

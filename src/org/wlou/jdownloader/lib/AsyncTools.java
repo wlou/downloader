@@ -1,4 +1,4 @@
-package org.wlou.jbdownloader.lib;
+package org.wlou.jdownloader.lib;
 
 import org.apache.log4j.Logger;
 
@@ -140,20 +140,20 @@ public final class AsyncTools {
         @Override
         public void completed(Integer read, NetworkOperationContext ctx) {
             try {
-                log.debug(String.format("%s Response portion has been received (%d bytes)", ctx.OperationInfo, read));
+                log.debug(String.format("%s response portion has been received (%d bytes)", ctx.OperationInfo, read));
                 if (proceedReading != null && !proceedReading.get()) {
-                    log.info(String.format("%s Reader has been interrupted", ctx.OperationInfo));
+                    log.info(String.format("%s reader has been interrupted", ctx.OperationInfo));
                     runCompletionHandler(read, ctx);
                     return;
                 }
                 if (!ctx.ResponseBytes.hasRemaining())
                     ctx = new NetworkOperationContext(ctx.OperationInfo, ctx.Channel, ctx.RequestBytes, buffers.next());
                 if (read == -1 || ctx.ResponseBytes == null) {
-                    log.info(String.format("%s Completing reader cleanly", ctx.OperationInfo));
+                    log.info(String.format("%s completing reader cleanly", ctx.OperationInfo));
                     runCompletionHandler(read, ctx);
                     return;
                 }
-                log.debug(String.format("%s Continue reading response", ctx.OperationInfo));
+                log.debug(String.format("%s continue reading response", ctx.OperationInfo));
                 ctx.Channel.read(ctx.ResponseBytes, ctx, this);
             }
             catch (Exception e) {
@@ -194,7 +194,7 @@ public final class AsyncTools {
 
     /**
      * Encapsulates the sequential writing logic for an asynchronous operation.
-     * Similar to {@link org.wlou.jbdownloader.lib.AsyncTools.ChannelReader}
+     * Similar to {@link org.wlou.jdownloader.lib.AsyncTools.ChannelReader}
      */
     public static class ChannelWriter implements CompletionHandler<Integer, NetworkOperationContext> {
         public ChannelWriter(Supplier<Boolean> proceedWriting,
@@ -214,18 +214,18 @@ public final class AsyncTools {
         @Override
         public void completed(Integer written, NetworkOperationContext ctx) {
             try {
-                log.debug(String.format("%s Request portion has been written (%d bytes)", ctx.OperationInfo, written));
+                log.debug(String.format("%s request portion has been written (%d bytes)", ctx.OperationInfo, written));
                 if (proceedWriting != null && !proceedWriting.get()) {
-                    log.info(String.format("%s Writer has been interrupted", ctx.OperationInfo));
+                    log.info(String.format("%s writer has been interrupted", ctx.OperationInfo));
                     runCompletionHandler(written, ctx);
                     return;
                 }
                 if (written == 0 || ctx.RequestBytes == null) {
-                    log.info(String.format("%s Completing writer cleanly", ctx.OperationInfo));
+                    log.info(String.format("%s completing writer cleanly", ctx.OperationInfo));
                     runCompletionHandler(written, ctx);
                     return;
                 }
-                log.debug(String.format("%s Continue writing response", ctx.OperationInfo));
+                log.debug(String.format("%s continue writing response", ctx.OperationInfo));
                 ctx.Channel.write(ctx.RequestBytes, ctx, this);
             }
             catch (Exception e) {

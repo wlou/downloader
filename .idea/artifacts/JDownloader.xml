@@ -1,19 +1,19 @@
 <component name="ArtifactManager">
-  <artifact type="javafx" build-on-make="true" name="JBDownloader">
-    <output-path>$PROJECT_DIR$/bin/artifacts/JBDownloader</output-path>
+  <artifact type="javafx" build-on-make="true" name="JDownloader">
+    <output-path>$PROJECT_DIR$/bin/artifacts/JDownloader</output-path>
     <properties id="javafx-properties">
       <options>
-        <option name="appClass" value="org.wlou.jbdownloader.gui.Main" />
+        <option name="appClass" value="org.wlou.jdownloader.gui.Main" />
         <option name="description" value="" />
         <option name="htmlParamFile" value="" />
         <option name="paramFile" value="" />
-        <option name="title" value="JBDownloader" />
+        <option name="title" value="JDownloader" />
         <option name="vendor" value="" />
       </options>
     </properties>
     <root id="root">
-      <element id="archive" name="JBDownloader.jar">
-        <element id="module-output" name="JBDownloader" />
+      <element id="archive" name="JDownloader.jar">
+        <element id="module-output" name="JDownloader" />
       </element>
     </root>
   </artifact>
