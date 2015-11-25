@@ -54,7 +54,7 @@ public class DownloaderTest extends TestCase {
             // let's test 404 response
             Download d = new Download(new URL(_404_URL), defaultBasePath);
             try {
-                downloader.initialize(new Downloader.DownloaderContext(d, "initialize"));
+                downloader.initialize(new Downloader.DownloaderContext(d, "initialize"), () -> true);
                 for (int i = 0; d.getCurrentStatus() == Download.Status.INITIALIZING && i < 3; ++i)
                     synchronized (d) { d.wait(500); }
                 assertTrue(d.getCurrentStatus() == Download.Status.ERROR);
@@ -69,7 +69,7 @@ public class DownloaderTest extends TestCase {
             d = new Download(new URL(_1K_ZEROS_URL), defaultBasePath);
             try {
 
-                downloader.initialize(new Downloader.DownloaderContext(d, "initialize"));
+                downloader.initialize(new Downloader.DownloaderContext(d, "initialize"), () -> true);
                 for (int i = 0; d.getCurrentStatus() == Download.Status.INITIALIZING && i < 3; ++i)
                     synchronized (d) { d.wait(500); }
                 assertTrue(d.getCurrentStatus() == Download.Status.INITIALIZED);
@@ -99,7 +99,7 @@ public class DownloaderTest extends TestCase {
             d.lockForInitialization();
             d.completeInitialization(initResponse, HttpTools.DEFAULT_CONTENT_CHARSET);
             try {
-                downloader.process(new Downloader.DownloaderContext(d, "process"));
+                downloader.process(new Downloader.DownloaderContext(d, "process"), () -> true);
                 for (int i = 0; d.getCurrentStatus() == Download.Status.DOWNLOADING && i < 3; ++i)
                     synchronized (d) { d.wait(500); }
                 assertTrue(d.getCurrentStatus() == Download.Status.DOWNLOADED);

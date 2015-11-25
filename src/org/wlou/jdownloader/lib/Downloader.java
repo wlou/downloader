@@ -15,10 +15,12 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 /**
  * The dispatcher object.
@@ -103,8 +105,8 @@ public class Downloader implements Runnable {
         for (Download download : tasks) {
             switch (download.getCurrentStatus()) {
                 case NEW: {
-                    DownloaderContext dc = new DownloaderContext(download, "initialize");
-                    initialize(dc);
+                    final DownloaderContext dc = new DownloaderContext(download, "initialize");
+                    initialize(dc, () -> DownloadTools.canProceedInitialization(dc.Target));
                     ++tasksToDispatch;
                     break;
                 }
@@ -112,8 +114,8 @@ public class Downloader implements Runnable {
                     ++tasksToDispatch;
                     break;
                 case INITIALIZED: {
-                    DownloaderContext dc = new DownloaderContext(download, "process");
-                    process(dc);
+                    final DownloaderContext dc = new DownloaderContext(download, "process");
+                    process(dc, () -> DownloadTools.canProceedProcessing(dc.Target));
                     break;
                 }
             }
@@ -140,10 +142,13 @@ public class Downloader implements Runnable {
      *     send request -> read response -> call {@link Download#completeInitialization(String, String)};
      *  4. runs Http HEAD request asynchronously.
      * @param dc The downloader context for initialize operation
+     * @param interruptor Callback for interrupting network operation.
+     *                    See {@link org.wlou.jdownloader.lib.AsyncTools.ChannelReader#ChannelReader(Iterator, Supplier, BiConsumer, BiConsumer)}
+     *                    and {@link org.wlou.jdownloader.lib.AsyncTools.ChannelWriter#ChannelWriter(Supplier, BiConsumer, BiConsumer)}
      */
-    public void initialize(DownloaderContext dc)  {
+    public void initialize(DownloaderContext dc, Supplier<Boolean> interruptor)  {
         assert dc != null && dc.Target != null;
-        assert dc.OperationName.equals("initialize");
+        assert interruptor != null;
 
         final BiConsumer<Throwable, NetworkOperationContext> initErrorHandler = (exc, nc) ->
             onDownloaderError(dc, nc, DownloadTools.INIT_ERROR_MESSAGE, exc);
@@ -188,7 +193,7 @@ public class Downloader implements Runnable {
         //     There is a AsyncTools.ChannelReader for handling such situation.
         final AsyncTools.ChannelReader reader = new AsyncTools.ChannelReader(
             responseCollector,
-            () -> DownloadTools.canProceedInitialization(dc.Target),
+            interruptor,
             (read, nc) -> onInitResponded(dc, nc, responseCollector),
             initErrorHandler
         );
@@ -197,7 +202,7 @@ public class Downloader implements Runnable {
         // 4.2 Now we need writer for sending the request
         //     The AsyncTools.ChannelWriter appropriates for this.
         final AsyncTools.ChannelWriter writer = new AsyncTools.ChannelWriter(
-            () -> DownloadTools.canProceedInitialization(dc.Target),
+            interruptor,
             (written, nc) -> {
                 LOG.info(String.format("%s request \"%s\" is sent", dc.OperationInfo,
                     AsyncTools.extractString(nc.RequestBytes, HttpTools.DEFAULT_CONTENT_CHARSET)));
@@ -229,10 +234,13 @@ public class Downloader implements Runnable {
      *     send request -> set of reads -> finalize the download (set status, release buffers);
      *  3. runs Http GET request asynchronously.
      * @param dc The download to initialize
+     * @param interruptor Callback for interrupting network operation.
+     *                    See {@link org.wlou.jdownloader.lib.AsyncTools.ChannelReader#ChannelReader(Iterator, Supplier, BiConsumer, BiConsumer)}
+     *                    and {@link org.wlou.jdownloader.lib.AsyncTools.ChannelWriter#ChannelWriter(Supplier, BiConsumer, BiConsumer)}
      */
-    public void process(DownloaderContext dc) {
+    public void process(DownloaderContext dc, Supplier<Boolean> interruptor) {
         assert dc != null && dc.Target != null;
-        assert dc.OperationName.equals("process");
+        assert interruptor != null;
 
         final BiConsumer<Throwable, NetworkOperationContext> procErrorHandler = (exc, nc) ->
             onDownloaderError(dc, nc, DownloadTools.PROC_ERROR_MESSAGE, exc);
@@ -275,7 +283,7 @@ public class Downloader implements Runnable {
         //     There is a AsyncTools.ChannelReader for handling such situation.
         final AsyncTools.ChannelReader reader = new AsyncTools.ChannelReader(
             new DownloadTools.DownloadOutputBuffersIterator(dc.Target),
-            () -> DownloadTools.canProceedProcessing(dc.Target),
+            interruptor,
             (read, nc) -> onProcResponded(dc, nc),
             procErrorHandler
         );
@@ -284,7 +292,7 @@ public class Downloader implements Runnable {
         // 4.2 Before reading we need to send request for the data
         //     We have AsyncTools.ChannelWriter for that
         final AsyncTools.ChannelWriter writer = new AsyncTools.ChannelWriter(
-            () -> DownloadTools.canProceedProcessing(dc.Target),
+            interruptor,
             (written, nc) -> {
                 LOG.info(String.format("%s request \"%s\" is sent", dc.OperationInfo,
                     AsyncTools.extractString(nc.RequestBytes, HttpTools.DEFAULT_CONTENT_CHARSET)));
